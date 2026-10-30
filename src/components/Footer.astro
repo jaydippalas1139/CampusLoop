@@ -1,0 +1,70 @@
+---
+// src/components/Footer.astro
+---
+
+<footer class="border-t border-slate-800 bg-slate-950 text-slate-400 py-12">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8 pb-8 border-b border-slate-800/80">
+      <!-- Brand & Mission -->
+      <div class="md:col-span-2 space-y-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center font-bold text-slate-950 text-sm">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M18.178 8c5.096 0 5.096 8 0 8-5.095 0-7.133-8-12.739-8-4.585 0-4.585 8 0 8 5.606 0 7.644-8 12.74-8z"/>
+            </svg>
+          </div>
+          <span class="text-lg font-bold text-white tracking-tight">CampusLoop</span>
+        </div>
+        <p class="text-xs text-slate-400 max-w-sm leading-relaxed">
+          A peer-to-peer campus resource-sharing and lending platform for higher education institutions. Developed and piloted at Silver Oak University, Ahmedabad.
+        </p>
+        <div class="text-[11px] text-slate-500">
+          In compliance with India's Digital Personal Data Protection (DPDP) Act, 2023 & ISO/IEC 18004 QR Standards.
+        </div>
+      </div>
+
+      <!-- Campus Student Network -->
+      <div>
+        <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-3">Campus Student Network</h4>
+        <ul class="text-xs space-y-1.5 text-slate-400">
+          <li class="font-medium text-slate-200">Dipesh Chauhan</li>
+          <li>Ajay Vaniya</li>
+          <li>Nisarg Trivedi</li>
+          <li>Nilrajsinh Gohil</li>
+          <li class="text-slate-500 text-[11px] pt-1">Student Community Coordinators</li>
+          <li class="text-slate-500 text-[11px]">Silver Oak University, Ahmedabad</li>
+        </ul>
+      </div>
+
+      <!-- Quick Links -->
+      <div>
+        <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-3">Navigation</h4>
+        <ul class="text-xs space-y-2">
+          <li><a href="#resource-grid" class="hover:text-emerald-400 transition-colors">Resource Grid</a></li>
+          <li><a href="#state-model" class="hover:text-emerald-400 transition-colors">State Model & Lifecycle</a></li>
+          <li><a href="#leaderboard" class="hover:text-emerald-400 transition-colors">Green Points Leaderboard</a></li>
+          <li>
+            <button type="button" id="footer-qr-trigger" class="hover:text-emerald-400 transition-colors text-left">
+              QR Handover Scanner
+            </button>
+          </li>
+          <li>
+            <button type="button" id="footer-list-trigger" class="hover:text-emerald-400 transition-colors text-left">
+              List an Academic Item
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Bottom Copyright -->
+    <div class="flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
+      <p>© 2026 CampusLoop • Silver Oak University Peer Exchange Network. All rights reserved.</p>
+      <div class="flex items-center gap-4">
+        <span>Zero Commercial Markup</span>
+        <span>•</span>
+        <span>Peer Accountable</span>
+      </div>
+    </div>
+  </div>
+</footer>

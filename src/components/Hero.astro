@@ -1,0 +1,113 @@
+---
+// src/components/Hero.astro
+---
+
+<section class="relative pt-8 pb-12 overflow-hidden border-b border-slate-800/80 bg-gradient-to-b from-[#0b1424] via-[#09111e] to-[#09111e]">
+  <!-- Subtle Background Grid & Emerald Glow Effects -->
+  <div class="absolute inset-0 bg-[linear-gradient(to_right,#1e293b15_1px,transparent_1px),linear-gradient(to_bottom,#1e293b15_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none"></div>
+  <div class="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+    <div class="text-center max-w-3xl mx-auto">
+      <!-- Main Heading with text-wrap: balance -->
+      <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.15] mb-5 [text-wrap:balance]">
+        Don’t Buy for One Semester. <br />
+        <span class="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
+          Share With Campus Peers.
+        </span>
+      </h1>
+
+      <!-- Subtitle -->
+      <p class="text-base sm:text-lg text-slate-300 leading-relaxed mb-8 max-w-2xl mx-auto font-normal">
+        The trusted campus exchange for textbooks, scientific calculators, microcontroller kits, and lab gear—backed by <strong>owner approval</strong>, <strong>scheduled campus meetups</strong>, and <strong>QR handover verification</strong>.
+      </p>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mb-8">
+        <a 
+          href="#resource-grid" 
+          class="px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/25 transition-all duration-150 hover:-translate-y-0.5 active:translate-y-0"
+        >
+          Browse Available Items
+        </a>
+
+        <button 
+          type="button"
+          id="hero-qr-trigger"
+          class="px-5 py-3 rounded-xl bg-slate-800/90 hover:bg-slate-700/90 text-slate-100 font-semibold text-sm border border-slate-700 shadow-sm transition-all duration-150 hover:-translate-y-0.5 flex items-center gap-2"
+        >
+          <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+            <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+            <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+            <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+          </svg>
+          <span>Handover QR Verification</span>
+        </button>
+
+        <a 
+          href="#state-model" 
+          class="px-4 py-3 rounded-xl bg-slate-900/60 hover:bg-slate-800 text-slate-400 hover:text-slate-200 font-medium text-sm transition-colors duration-150"
+        >
+          How It Works →
+        </a>
+      </div>
+
+      <!-- Quick Search Chips -->
+      <div class="flex items-center justify-center flex-wrap gap-2 text-xs text-slate-400">
+        <span class="text-slate-500 font-medium">Popular:</span>
+        <button type="button" class="quick-chip px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-emerald-950/60 hover:text-emerald-300 border border-slate-700/60 transition-colors duration-150" data-tag="Casio">
+          Casio Calculator
+        </button>
+        <button type="button" class="quick-chip px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-emerald-950/60 hover:text-emerald-300 border border-slate-700/60 transition-colors duration-150" data-tag="Arduino">
+          Arduino Kit
+        </button>
+        <button type="button" class="quick-chip px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-emerald-950/60 hover:text-emerald-300 border border-slate-700/60 transition-colors duration-150" data-tag="Textbook">
+          Engineering Books
+        </button>
+        <button type="button" class="quick-chip px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-emerald-950/60 hover:text-emerald-300 border border-slate-700/60 transition-colors duration-150" data-tag="Drafter">
+          Mini Drafter
+        </button>
+      </div>
+    </div>
+
+    <!-- Authentic 3-Step Campus Handover Workflow -->
+    <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
+      <div class="bg-slate-900/80 backdrop-blur-md border border-slate-800 rounded-2xl p-5 flex items-start gap-3.5 hover:border-slate-700 transition-colors">
+        <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-bold text-sm shrink-0">
+          1
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-white mb-1">Request Resource</h3>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Choose to borrow, exchange, buy, or claim free academic items listed by verified students.
+          </p>
+        </div>
+      </div>
+
+      <div class="bg-slate-900/80 backdrop-blur-md border border-slate-800 rounded-2xl p-5 flex items-start gap-3.5 hover:border-slate-700 transition-colors">
+        <div class="w-9 h-9 rounded-xl bg-teal-500/10 border border-teal-500/30 text-teal-400 flex items-center justify-center font-bold text-sm shrink-0">
+          2
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-white mb-1">Set Meetup Date & Time</h3>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            The item owner accepts and selects the meeting date, time, and campus spot with notification.
+          </p>
+        </div>
+      </div>
+
+      <div class="bg-slate-900/80 backdrop-blur-md border border-slate-800 rounded-2xl p-5 flex items-start gap-3.5 hover:border-slate-700 transition-colors">
+        <div class="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 flex items-center justify-center font-bold text-sm shrink-0">
+          3
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-white mb-1">QR Handover Verification</h3>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Meet on campus and scan the QR code or enter 4-digit PIN to confirm receipt and credit Green Points.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

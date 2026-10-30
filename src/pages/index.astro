@@ -1,11 +1,1284 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Hero from '../components/Hero.astro';
+import ResourceGrid from '../components/ResourceGrid.astro';
+import StateModel from '../components/StateModel.astro';
+import GreenPointsLeaderboard from '../components/GreenPointsLeaderboard.astro';
+import Footer from '../components/Footer.astro';
+import QRVerificationModal from '../components/QRVerificationModal.astro';
+import ActiveLoansDrawer from '../components/ActiveLoansDrawer.astro';
+import ListItemModal from '../components/ListItemModal.astro';
+import RequestItemModal from '../components/RequestItemModal.astro';
+import AuthModal from '../components/AuthModal.astro';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import { getSessionUser } from '../lib/db';
+
+const sessionToken = Astro.cookies.get('campusloop_session')?.value;
+const initialUser = sessionToken ? getSessionUser(sessionToken) : null;
 ---
 
-<Layout>
-	<Welcome />
+<Layout title="CampusLoop — Peer-to-Peer Campus Resource Sharing | Silver Oak University">
+  <Navbar />
+  
+  <main id="main-content" class="flex-1">
+    <Hero />
+    <ResourceGrid />
+    <StateModel />
+    <GreenPointsLeaderboard />
+  </main>
+
+  <Footer />
+
+  <!-- Modals & Drawers -->
+  <QRVerificationModal />
+  <ActiveLoansDrawer />
+  <ListItemModal />
+  <RequestItemModal />
+  <AuthModal />
+
+  <!-- Dynamic Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm pointer-events-none" aria-live="polite"></div>
 </Layout>
+
+<script define:vars={{ initialUser }}>
+  // Pass server session user to client
+  window.currentUser = initialUser;
+</script>
+
+<script>
+  // CampusLoop Client State & Event Orchestrator
+  let currentActionFilter = 'all';
+  let currentCategoryFilter = 'all';
+  let currentDeptFilter = 'all';
+  let currentSearchQuery = '';
+  let activeTargetItemId = 'CL-ITEM-01';
+
+  // Sound effects simulation using Web Audio API
+  function playAudioBeep() {
+    try {
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.25);
+    } catch (e) {
+      // AudioContext fallback
+    }
+  }
+
+  // Toast notification helper
+  function showToast(message: string, _type: 'success' | 'info' | 'emerald' = 'emerald') {
+    const container = document.getElementById('toast-container');
+    const announcer = document.getElementById('a11y-announcer');
+    if (announcer) announcer.textContent = message;
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = 'pointer-events-auto flex items-center gap-3 p-4 bg-slate-900 border border-emerald-500/50 text-white text-xs font-semibold rounded-2xl shadow-2xl transform transition-all duration-300 translate-y-4 opacity-0';
+    toast.innerHTML = `
+      <div class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">✓</div>
+      <div class="flex-1">${message}</div>
+    `;
+
+    container.appendChild(toast);
+    requestAnimationFrame(() => {
+      toast.classList.remove('translate-y-4', 'opacity-0');
+    });
+
+    setTimeout(() => {
+      toast.classList.add('opacity-0', 'translate-y-2');
+      setTimeout(() => toast.remove(), 300);
+    }, 4500);
+  }
+
+  // Filter application
+  function applyFilters() {
+    const cards = document.querySelectorAll<HTMLElement>('.resource-card');
+    let visibleCount = 0;
+
+    cards.forEach(card => {
+      const action = card.dataset.action || '';
+      const category = card.dataset.category || '';
+      const department = card.dataset.department || '';
+      const title = (card.dataset.title || '').toLowerCase();
+      const owner = (card.dataset.owner || '').toLowerCase();
+
+      const matchAction = currentActionFilter === 'all' || action === currentActionFilter;
+      const matchCategory = currentCategoryFilter === 'all' || category === currentCategoryFilter;
+      const matchDept = currentDeptFilter === 'all' || department === currentDeptFilter;
+      const matchSearch = !currentSearchQuery || 
+        title.includes(currentSearchQuery) || 
+        owner.includes(currentSearchQuery);
+
+      if (matchAction && matchCategory && matchDept && matchSearch) {
+        card.style.display = 'flex';
+        visibleCount++;
+      } else {
+        card.style.display = 'none';
+      }
+    });
+
+    const countElem = document.getElementById('filtered-items-count');
+    if (countElem) countElem.textContent = visibleCount.toString();
+
+    const noResults = document.getElementById('no-results-state');
+    if (noResults) {
+      noResults.classList.toggle('hidden', visibleCount > 0);
+    }
+  }
+
+  // Update Auth UI
+  function updateAuthUI() {
+    const user = (window as any).currentUser;
+    const navLoginBtn = document.getElementById('nav-login-btn');
+    const navUserPill = document.getElementById('nav-user-pill');
+    const userDisplayName = document.getElementById('user-display-name');
+    const userDisplayDept = document.getElementById('user-display-dept');
+    const userAvatar = document.getElementById('user-avatar');
+    const dropdownEmail = document.getElementById('dropdown-user-email');
+    const pointsBadge = document.getElementById('green-points-badge');
+    const drawerPoints = document.getElementById('drawer-green-points');
+
+    if (user) {
+      navLoginBtn?.classList.add('hidden');
+      navUserPill?.classList.remove('hidden');
+      if (userDisplayName) userDisplayName.textContent = user.name;
+      if (userDisplayDept) userDisplayDept.textContent = user.department;
+      if (userAvatar) userAvatar.textContent = user.avatar || user.name.slice(0, 2).toUpperCase();
+      if (dropdownEmail) dropdownEmail.textContent = user.email;
+      if (pointsBadge) pointsBadge.textContent = (user.green_points || 480).toString();
+      if (drawerPoints) drawerPoints.textContent = `${user.green_points || 480} pts`;
+    } else {
+      navLoginBtn?.classList.remove('hidden');
+      navUserPill?.classList.add('hidden');
+    }
+  }
+
+  function openLoansDrawer() {
+    const loansDrawer = document.getElementById('loans-drawer');
+    const loansBackdrop = document.getElementById('loans-drawer-backdrop');
+    if (loansDrawer && loansBackdrop) {
+      fetchUserRequests();
+      loansBackdrop.classList.remove('hidden');
+      loansDrawer.classList.remove('translate-x-full');
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function closeLoansDrawer() {
+    const loansDrawer = document.getElementById('loans-drawer');
+    const loansBackdrop = document.getElementById('loans-drawer-backdrop');
+    if (loansDrawer && loansBackdrop) {
+      loansDrawer.classList.add('translate-x-full');
+      loansBackdrop.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+  }
+
+  function openQRModal(itemName?: string) {
+    const qrModal = document.getElementById('qr-verification-modal');
+    if (qrModal) {
+      if (itemName) {
+        const itemTitleElem = document.getElementById('qr-modal-item-name');
+        if (itemTitleElem) itemTitleElem.textContent = itemName;
+      }
+      qrModal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function closeQRModal() {
+    const qrModal = document.getElementById('qr-verification-modal');
+    if (qrModal) {
+      qrModal.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+  }
+
+  let currentQRTransaction: {
+    requestId: string;
+    itemTitle: string;
+    peerName: string;
+    meetInfo: string;
+    pin: string;
+    status: string;
+  } | null = null;
+
+  // Sync user state from /api/auth/me
+  async function checkUserSession() {
+    try {
+      const res = await fetch('/api/auth/me');
+      const data = await res.json();
+      (window as any).currentUser = data.user;
+      updateAuthUI();
+      if (data.user) {
+        fetchUserRequests();
+        fetchNotifications();
+      }
+    } catch (e) {
+      updateAuthUI();
+    }
+  }
+
+  // Fetch notifications
+  async function fetchNotifications() {
+    try {
+      const res = await fetch('/api/notifications');
+      if (!res.ok) return;
+      const data = await res.json();
+      const notifs = data.notifications || [];
+      const unread = notifs.filter((n: any) => !n.is_read);
+
+      const badge = document.getElementById('notifications-badge');
+      const unreadCount = document.getElementById('notifications-unread-count');
+      const list = document.getElementById('notifications-list');
+
+      if (badge) {
+        if (unread.length > 0) {
+          badge.textContent = unread.length.toString();
+          badge.classList.remove('hidden');
+        } else {
+          badge.classList.add('hidden');
+        }
+      }
+      if (unreadCount) unreadCount.textContent = `${unread.length} new`;
+
+      if (list) {
+        if (notifs.length === 0) {
+          list.innerHTML = `<div class="p-6 text-center text-slate-500 text-xs">No notifications yet.</div>`;
+        } else {
+          list.innerHTML = notifs.map((n: any) => `
+            <div class="p-3.5 hover:bg-slate-800/40 transition-colors ${!n.is_read ? 'bg-emerald-950/20 border-l-2 border-emerald-500' : ''}">
+              <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1">
+                <span class="font-bold ${n.type === 'REQUEST_ACCEPTED' ? 'text-emerald-400' : n.type === 'REQUEST_RECEIVED' ? 'text-teal-300' : 'text-slate-300'}">
+                  ${n.title}
+                </span>
+                <span class="text-[10px] text-slate-500">${formatRelativeTime(n.created_at)}</span>
+              </div>
+              <p class="text-xs text-slate-200 leading-relaxed">${n.message}</p>
+              ${n.type === 'REQUEST_ACCEPTED' ? `
+                <button type="button" class="view-notif-qr-btn mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500 hover:text-slate-950 text-emerald-300 text-[11px] font-semibold border border-emerald-500/30 transition-colors">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+                    <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+                    <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+                    <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+                  </svg>
+                  <span>View Handover QR & PIN</span>
+                </button>
+              ` : ''}
+            </div>
+          `).join('');
+
+          list.querySelectorAll('.view-notif-qr-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const notifPopover = document.getElementById('notifications-popover');
+              if (notifPopover) notifPopover.classList.add('hidden');
+              openLoansDrawer();
+            });
+          });
+        }
+      }
+    } catch (e) {}
+  }
+
+  function formatRelativeTime(dateStr: string) {
+    if (!dateStr) return 'Just now';
+    const date = new Date(dateStr.replace(' ', 'T') + 'Z');
+    const now = new Date();
+    const diffSec = Math.floor((now.getTime() - date.getTime()) / 1000);
+    if (diffSec < 60) return 'Just now';
+    if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
+    if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h ago`;
+    return `${Math.floor(diffSec / 86400)}d ago`;
+  }
+
+  // Fetch incoming & outgoing requests
+  async function fetchUserRequests() {
+    try {
+      const res = await fetch('/api/requests');
+      if (!res.ok) return;
+      const data = await res.json();
+      const incoming = data.incoming || [];
+      const outgoing = data.outgoing || [];
+
+      // Update counters
+      const counter = document.getElementById('active-loans-counter');
+      const incomingCounter = document.getElementById('incoming-requests-count');
+      const totalActive = incoming.length + outgoing.length;
+
+      if (counter) counter.textContent = totalActive.toString();
+      if (incomingCounter) incomingCounter.textContent = `${incoming.filter((r: any) => r.status === 'PENDING').length} New`;
+
+      // 1. Render incoming requests (items you own that others requested)
+      const incomingContainer = document.getElementById('incoming-requests-list');
+      if (incomingContainer) {
+        if (incoming.length === 0) {
+          incomingContainer.innerHTML = `<div class="p-6 text-center text-slate-500 text-xs bg-slate-950/40 rounded-2xl border border-slate-800/60">No incoming requests for your items yet.</div>`;
+        } else {
+          incomingContainer.innerHTML = incoming.map((req: any) => `
+            <div class="incoming-request-card p-4 rounded-2xl bg-slate-950/90 border ${req.status === 'ACCEPTED' ? 'border-emerald-500/50' : 'border-slate-800'} space-y-3">
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold ${req.status === 'ACCEPTED' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : req.status === 'HANDED_OVER' ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/40' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'}">
+                    ${req.status === 'ACCEPTED' ? 'MEETUP SCHEDULED' : req.status === 'HANDED_OVER' ? 'HANDOVER COMPLETED' : 'PENDING YOUR ACCEPTANCE'}
+                  </span>
+                  <h4 class="text-sm font-bold text-white mt-1.5">${req.item_title}</h4>
+                  <p class="text-xs text-slate-400">Requester: ${req.requester_name} (${req.requester_dept})</p>
+                </div>
+                <img src="${req.item_image || '/images/arduino_kit.jpg'}" alt="Item" class="w-12 h-12 rounded-lg object-cover border border-slate-700" />
+              </div>
+
+              <div class="text-[11px] text-slate-300 bg-slate-900/90 p-3 rounded-xl border border-slate-800 space-y-1.5">
+                <div>Proposed Spot: <span class="text-emerald-400 font-medium">${req.proposed_spot}</span></div>
+                <div>Duration: <span class="text-white font-medium">${req.duration_days} Days</span></div>
+                ${req.notes ? `<div class="text-slate-400 italic">"${req.notes}"</div>` : ''}
+                ${req.status === 'ACCEPTED' ? `
+                  <div class="mt-2 pt-2 border-t border-slate-800 text-xs text-emerald-300 space-y-1">
+                    <div class="font-bold text-white">Scheduled Handover Meetup:</div>
+                    <div>Time: <span class="font-semibold text-emerald-400">${req.meet_time || 'Tomorrow 1:30 PM'}</span></div>
+                    <div>Location: <span class="font-semibold text-emerald-400">${req.meet_spot || req.proposed_spot}</span></div>
+                    ${req.owner_note ? `<div>Note: <span class="italic text-slate-300">${req.owner_note}</span></div>` : ''}
+                    <div>Handover PIN: <span class="font-mono font-bold text-amber-400">${req.handover_code || '8492'}</span></div>
+                  </div>
+                ` : ''}
+              </div>
+
+              ${req.status === 'PENDING' ? `
+                <div class="schedule-form-container pt-1">
+                  <div class="schedule-panel hidden bg-slate-900 p-3 rounded-xl border border-slate-700 space-y-3 mb-2">
+                    <div class="text-xs font-bold text-slate-200">Set Meetup Date, Time & Spot:</div>
+                    
+                    <div>
+                      <label class="block text-[11px] text-slate-400 mb-1">Meet Date & Time *</label>
+                      <input 
+                        type="text" 
+                        class="meet-time-field w-full px-3 py-1.5 text-xs bg-slate-950 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500" 
+                        value="Tomorrow 1:30 PM (Lunch Break)" 
+                        placeholder="e.g. Today 4:00 PM or Tomorrow 1:30 PM" 
+                      />
+                      <div class="flex flex-wrap gap-1 mt-1.5">
+                        <button type="button" class="preset-time-btn px-2 py-0.5 rounded bg-slate-800 text-[10px] text-slate-300 hover:text-white" data-val="Today 4:30 PM">Today 4:30 PM</button>
+                        <button type="button" class="preset-time-btn px-2 py-0.5 rounded bg-slate-800 text-[10px] text-slate-300 hover:text-white" data-val="Tomorrow 1:30 PM">Tomorrow 1:30 PM</button>
+                        <button type="button" class="preset-time-btn px-2 py-0.5 rounded bg-slate-800 text-[10px] text-slate-300 hover:text-white" data-val="Tomorrow 5:00 PM">Tomorrow 5:00 PM</button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label class="block text-[11px] text-slate-400 mb-1">Meeting Location *</label>
+                      <select class="meet-spot-field w-full px-3 py-1.5 text-xs bg-slate-950 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500">
+                        <option value="${req.proposed_spot}">${req.proposed_spot} (Requested)</option>
+                        <option value="Library Ground Floor Foyer">Library Ground Floor Foyer</option>
+                        <option value="C-Block Atrium / Reception">C-Block Atrium / Reception</option>
+                        <option value="Tech Cafeteria Central Gazebo">Tech Cafeteria Central Gazebo</option>
+                        <option value="Mechanical Workshop Room 104">Mechanical Workshop Room 104</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label class="block text-[11px] text-slate-400 mb-1">Handover Note for Student</label>
+                      <input 
+                        type="text" 
+                        class="owner-note-field w-full px-3 py-1.5 text-xs bg-slate-950 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500" 
+                        placeholder="e.g. Meet outside reading room, bring student ID" 
+                      />
+                    </div>
+
+                    <button 
+                      type="button" 
+                      class="confirm-accept-btn w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-md transition-all duration-150"
+                      data-request-id="${req.id}"
+                    >
+                      Confirm Meetup & Notify Student
+                    </button>
+                  </div>
+
+                  <div class="flex items-center gap-2">
+                    <button 
+                      type="button" 
+                      class="toggle-schedule-btn flex-1 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition-colors shadow-sm"
+                    >
+                      Accept & Schedule Meetup
+                    </button>
+                    <button 
+                      type="button" 
+                      class="decline-request-btn px-3 py-2 rounded-xl bg-slate-800 hover:bg-red-500/20 hover:text-red-400 text-slate-400 font-semibold text-xs border border-slate-700 transition-colors"
+                      data-request-id="${req.id}"
+                    >
+                      Decline
+                    </button>
+                  </div>
+                </div>
+              ` : req.status === 'ACCEPTED' ? `
+                <div class="flex items-center gap-2 pt-1">
+                  <button 
+                    type="button" 
+                    class="show-handover-qr-btn flex-1 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition-colors shadow-sm"
+                    data-request-id="${req.id}"
+                    data-item-title="${req.item_title}"
+                    data-peer-name="${req.requester_name} (${req.requester_dept})"
+                    data-meet-info="Meetup: ${req.meet_time} @ ${req.meet_spot}"
+                    data-pin="${req.handover_code || '8492'}"
+                  >
+                    Show Handover QR & PIN
+                  </button>
+                  <button 
+                    type="button" 
+                    class="verify-handover-btn px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-300 font-semibold text-xs border border-emerald-500/30 transition-colors"
+                    data-request-id="${req.id}"
+                    data-item-title="${req.item_title}"
+                    data-peer-name="${req.requester_name}"
+                    data-meet-info="Meetup: ${req.meet_time} @ ${req.meet_spot}"
+                    data-pin="${req.handover_code || '8492'}"
+                  >
+                    Confirm Receipt
+                  </button>
+                </div>
+              ` : `
+                <div class="text-xs text-indigo-300 bg-indigo-950/40 p-2.5 rounded-xl border border-indigo-500/30 text-center font-medium">
+                  Item handed over. Green Points credited to both accounts.
+                </div>
+              `}
+            </div>
+          `).join('');
+
+          // Bind schedule accordion toggle
+          incomingContainer.querySelectorAll('.toggle-schedule-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              const card = (e.currentTarget as HTMLElement).closest('.incoming-request-card');
+              const panel = card?.querySelector('.schedule-panel');
+              panel?.classList.toggle('hidden');
+              btn.classList.toggle('hidden');
+            });
+          });
+
+          // Bind preset time buttons
+          incomingContainer.querySelectorAll('.preset-time-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              const val = (e.currentTarget as HTMLElement).dataset.val;
+              const card = (e.currentTarget as HTMLElement).closest('.incoming-request-card');
+              const input = card?.querySelector('.meet-time-field') as HTMLInputElement;
+              if (input && val) input.value = val;
+            });
+          });
+
+          // Bind confirm accept buttons
+          incomingContainer.querySelectorAll('.confirm-accept-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+              const reqId = (e.currentTarget as HTMLElement).dataset.requestId;
+              const card = (e.currentTarget as HTMLElement).closest('.incoming-request-card');
+              const meetTime = (card?.querySelector('.meet-time-field') as HTMLInputElement)?.value;
+              const meetSpot = (card?.querySelector('.meet-spot-field') as HTMLSelectElement)?.value;
+              const ownerNote = (card?.querySelector('.owner-note-field') as HTMLInputElement)?.value;
+              await handleRequestResponse(reqId, 'ACCEPTED', { meetTime, meetSpot, ownerNote });
+            });
+          });
+
+          // Bind decline buttons
+          incomingContainer.querySelectorAll('.decline-request-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+              const reqId = (e.currentTarget as HTMLElement).dataset.requestId;
+              await handleRequestResponse(reqId, 'REJECTED');
+            });
+          });
+
+          // Bind show handover QR buttons
+          incomingContainer.querySelectorAll('.show-handover-qr-btn, .verify-handover-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              const el = e.currentTarget as HTMLElement;
+              openTransactionQR({
+                requestId: el.dataset.requestId || '',
+                itemTitle: el.dataset.itemTitle || '',
+                peerName: el.dataset.peerName || '',
+                meetInfo: el.dataset.meetInfo || '',
+                pin: el.dataset.pin || '8492',
+                status: 'SCHEDULED'
+              });
+            });
+          });
+        }
+      }
+
+      // 2. Render outgoing requests (items you requested from other students)
+      const outgoingContainer = document.getElementById('active-loans-list');
+      if (outgoingContainer) {
+        if (outgoing.length === 0) {
+          outgoingContainer.innerHTML = `<div class="p-6 text-center text-slate-500 text-xs bg-slate-950/40 rounded-2xl border border-slate-800/60">You have no active requests or borrowings.</div>`;
+        } else {
+          outgoingContainer.innerHTML = outgoing.map((req: any) => `
+            <div class="outgoing-request-card p-4 rounded-2xl bg-slate-950/90 border ${req.status === 'ACCEPTED' ? 'border-emerald-500/50' : 'border-slate-800'} space-y-3">
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold ${req.status === 'ACCEPTED' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : req.status === 'HANDED_OVER' ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/40' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'}">
+                    ${req.status === 'ACCEPTED' ? 'ACCEPTED • MEETUP SCHEDULED' : req.status === 'HANDED_OVER' ? 'IN YOUR POSSESSION' : 'AWAITING OWNER ACCEPTANCE'}
+                  </span>
+                  <h4 class="text-sm font-bold text-white mt-1.5">${req.item_title}</h4>
+                  <p class="text-xs text-slate-400">Owner: ${req.owner_name} (${req.owner_dept})</p>
+                </div>
+                <img src="${req.item_image || '/images/arduino_kit.jpg'}" alt="Item" class="w-12 h-12 rounded-lg object-cover border border-slate-700" />
+              </div>
+
+              ${req.status === 'ACCEPTED' ? `
+                <div class="text-xs text-emerald-300 bg-emerald-950/40 p-3 rounded-xl border border-emerald-500/30 space-y-1">
+                  <div class="font-bold text-white">Meetup Details from Owner:</div>
+                  <div>When: <span class="font-bold text-emerald-400">${req.meet_time || 'Tomorrow 1:30 PM'}</span></div>
+                  <div>Where: <span class="font-bold text-emerald-400">${req.meet_spot || req.proposed_spot}</span></div>
+                  ${req.owner_note ? `<div>Note: <span class="italic text-slate-300">${req.owner_note}</span></div>` : ''}
+                  <div>Your Handover PIN: <span class="font-mono font-bold text-amber-400">${req.handover_code || '8492'}</span></div>
+                </div>
+
+                <button 
+                  type="button" 
+                  class="show-outgoing-qr-btn w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition-colors shadow-sm"
+                  data-request-id="${req.id}"
+                  data-item-title="${req.item_title}"
+                  data-peer-name="${req.owner_name} (${req.owner_dept})"
+                  data-meet-info="Meetup: ${req.meet_time} @ ${req.meet_spot}"
+                  data-pin="${req.handover_code || '8492'}"
+                >
+                  Show Handover QR & PIN Code
+                </button>
+              ` : req.status === 'HANDED_OVER' ? `
+                <div class="text-xs text-slate-300 bg-slate-900/90 p-3 rounded-xl border border-slate-800 space-y-1">
+                  <div class="text-emerald-400 font-semibold">Active Loan • In Good Standing</div>
+                  <div>Return Due: <span class="font-bold text-white">${req.duration_days} Days from handover</span></div>
+                </div>
+              ` : `
+                <div class="text-xs text-slate-400 bg-slate-900/90 p-2.5 rounded-xl border border-slate-800">
+                  Request sent. Waiting for ${req.owner_name} to confirm meetup date and spot.
+                </div>
+              `}
+            </div>
+          `).join('');
+
+          outgoingContainer.querySelectorAll('.show-outgoing-qr-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              const el = e.currentTarget as HTMLElement;
+              openTransactionQR({
+                requestId: el.dataset.requestId || '',
+                itemTitle: el.dataset.itemTitle || '',
+                peerName: el.dataset.peerName || '',
+                meetInfo: el.dataset.meetInfo || '',
+                pin: el.dataset.pin || '8492',
+                status: 'SCHEDULED'
+              });
+            });
+          });
+        }
+      }
+    } catch (e) {
+      // Offline fallback
+    }
+  }
+
+  // Handle Owner Acceptance or Decline with Meetup Details
+  async function handleRequestResponse(
+    requestId: string | undefined, 
+    status: 'ACCEPTED' | 'REJECTED',
+    meetDetails?: { meetTime?: string; meetSpot?: string; ownerNote?: string }
+  ) {
+    if (!requestId) return;
+    try {
+      const res = await fetch('/api/requests/respond', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          requestId, 
+          status,
+          meetTime: meetDetails?.meetTime,
+          meetSpot: meetDetails?.meetSpot,
+          ownerNote: meetDetails?.ownerNote
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showToast(`Error: ${data.error}`);
+        return;
+      }
+      playAudioBeep();
+      if (status === 'ACCEPTED') {
+        showToast(`Request accepted! Meetup scheduled for ${data.meetTime || 'Tomorrow'}. Student notified.`);
+      } else {
+        showToast('Request declined.');
+      }
+      fetchUserRequests();
+      fetchNotifications();
+    } catch (e: any) {
+      showToast(`Error updating request: ${e.message}`);
+    }
+  }
+
+  function openTransactionQR(trx: {
+    requestId: string;
+    itemTitle: string;
+    peerName: string;
+    meetInfo: string;
+    pin: string;
+    status: string;
+  }) {
+    currentQRTransaction = trx;
+    const trxIdElem = document.getElementById('qr-modal-trx-id');
+    const itemTitleElem = document.getElementById('qr-modal-item-name');
+    const peerNameElem = document.getElementById('qr-modal-peer-name');
+    const meetInfoElem = document.getElementById('qr-modal-meetup-info');
+    const pinElem = document.getElementById('qr-modal-handover-pin');
+    const pinInput = document.getElementById('verification-pin-input') as HTMLInputElement;
+
+    if (trxIdElem) trxIdElem.textContent = `Transaction #${trx.requestId}`;
+    if (itemTitleElem) itemTitleElem.textContent = trx.itemTitle;
+    if (peerNameElem) peerNameElem.textContent = `With: ${trx.peerName}`;
+    if (meetInfoElem) meetInfoElem.textContent = trx.meetInfo;
+    if (pinElem) pinElem.textContent = trx.pin;
+    if (pinInput) pinInput.value = '';
+
+    openQRModal();
+  }
+
+  // DOM Event Listeners
+  document.addEventListener('DOMContentLoaded', () => {
+    checkUserSession();
+
+    // 1. Action Filter Buttons
+    document.querySelectorAll<HTMLButtonElement>('.action-filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.action-filter-btn').forEach(b => {
+          b.classList.remove('bg-emerald-500', 'text-slate-950');
+          b.classList.add('bg-slate-800', 'text-slate-300');
+          b.setAttribute('aria-selected', 'false');
+        });
+        btn.classList.remove('bg-slate-800', 'text-slate-300');
+        btn.classList.add('bg-emerald-500', 'text-slate-950');
+        btn.setAttribute('aria-selected', 'true');
+
+        currentActionFilter = btn.dataset.action || 'all';
+        applyFilters();
+      });
+    });
+
+    // 2. Category & Department Selects
+    const catSelect = document.getElementById('category-select') as HTMLSelectElement;
+    if (catSelect) {
+      catSelect.addEventListener('change', (e) => {
+        currentCategoryFilter = (e.target as HTMLSelectElement).value;
+        applyFilters();
+      });
+    }
+
+    const deptSelect = document.getElementById('department-select') as HTMLSelectElement;
+    if (deptSelect) {
+      deptSelect.addEventListener('change', (e) => {
+        currentDeptFilter = (e.target as HTMLSelectElement).value;
+        applyFilters();
+      });
+    }
+
+    // 3. Search Inputs & Shortcut '/'
+    const searchInput = document.getElementById('global-search-input') as HTMLInputElement;
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        currentSearchQuery = (e.target as HTMLInputElement).value.trim().toLowerCase();
+        applyFilters();
+      });
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === '/' && document.activeElement !== searchInput && !(document.activeElement instanceof HTMLInputElement || document.activeElement instanceof HTMLTextAreaElement)) {
+        e.preventDefault();
+        searchInput?.focus();
+      }
+      if (e.key === 'Escape') {
+        closeAllModals();
+      }
+    });
+
+    // 4. Quick Search Chips in Hero
+    document.querySelectorAll<HTMLButtonElement>('.quick-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const tag = chip.dataset.tag || '';
+        if (searchInput) {
+          searchInput.value = tag;
+          currentSearchQuery = tag.toLowerCase();
+          applyFilters();
+          document.getElementById('resource-grid')?.scrollIntoView({ behavior: 'smooth' });
+        }
+      });
+    });
+
+    // 5. Reset Filters Button
+    document.getElementById('reset-filters-btn')?.addEventListener('click', () => {
+      currentActionFilter = 'all';
+      currentCategoryFilter = 'all';
+      currentDeptFilter = 'all';
+      currentSearchQuery = '';
+      if (searchInput) searchInput.value = '';
+      if (catSelect) catSelect.value = 'all';
+      if (deptSelect) deptSelect.value = 'all';
+      document.querySelectorAll('.action-filter-btn').forEach((b, idx) => {
+        if (idx === 0) {
+          b.classList.add('bg-emerald-500', 'text-slate-950');
+          b.classList.remove('bg-slate-800', 'text-slate-300');
+        } else {
+          b.classList.remove('bg-emerald-500', 'text-slate-950');
+          b.classList.add('bg-slate-800', 'text-slate-300');
+        }
+      });
+      applyFilters();
+    });
+
+    // 6. User Menu Dropdown Toggle
+    const userMenuTrigger = document.getElementById('user-menu-trigger');
+    const userDropdown = document.getElementById('user-dropdown');
+    userMenuTrigger?.addEventListener('click', () => {
+      userDropdown?.classList.toggle('hidden');
+    });
+
+    document.addEventListener('click', (e) => {
+      if (userMenuTrigger && !userMenuTrigger.contains(e.target as Node) && userDropdown && !userDropdown.contains(e.target as Node)) {
+        userDropdown.classList.add('hidden');
+      }
+    });
+
+    // 7. Auth Modal Handling (Login / Register)
+    const authModal = document.getElementById('auth-modal');
+    const navLoginBtn = document.getElementById('nav-login-btn');
+    const closeAuthBtn = document.getElementById('close-auth-modal-btn');
+    const tabLogin = document.getElementById('tab-btn-login');
+    const tabRegister = document.getElementById('tab-btn-register');
+    const loginForm = document.getElementById('login-form') as HTMLFormElement;
+    const registerForm = document.getElementById('register-form') as HTMLFormElement;
+    const navLogoutBtn = document.getElementById('nav-logout-btn');
+
+    function openAuthModal(mode: 'login' | 'register' = 'login') {
+      if (authModal) {
+        authModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        if (mode === 'login') {
+          tabLogin?.click();
+        } else {
+          tabRegister?.click();
+        }
+      }
+    }
+
+    function closeAuthModal() {
+      if (authModal) {
+        authModal.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+    }
+
+    navLoginBtn?.addEventListener('click', () => openAuthModal('login'));
+    closeAuthBtn?.addEventListener('click', closeAuthModal);
+    authModal?.addEventListener('click', (e) => {
+      if (e.target === authModal) closeAuthModal();
+    });
+
+    tabLogin?.addEventListener('click', () => {
+      tabLogin.classList.add('bg-emerald-500', 'text-slate-950');
+      tabLogin.classList.remove('bg-slate-800', 'text-slate-300');
+      tabRegister?.classList.remove('bg-emerald-500', 'text-slate-950');
+      tabRegister?.classList.add('bg-slate-800', 'text-slate-300');
+      loginForm?.classList.remove('hidden');
+      registerForm?.classList.add('hidden');
+    });
+
+    tabRegister?.addEventListener('click', () => {
+      tabRegister.classList.add('bg-emerald-500', 'text-slate-950');
+      tabRegister.classList.remove('bg-slate-800', 'text-slate-300');
+      tabLogin?.classList.remove('bg-emerald-500', 'text-slate-950');
+      tabLogin?.classList.add('bg-slate-800', 'text-slate-300');
+      registerForm?.classList.remove('hidden');
+      loginForm?.classList.add('hidden');
+    });
+
+    // 1-Click Demo Profiles Login
+    document.querySelectorAll<HTMLButtonElement>('.demo-login-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const email = btn.dataset.email;
+        if (!email) return;
+        try {
+          const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password: 'campus123' })
+          });
+          const data = await res.json();
+          if (res.ok) {
+            closeAuthModal();
+            playAudioBeep();
+            showToast(`Logged in as ${email.split('@')[0]}!`);
+            checkUserSession();
+          } else {
+            showToast(`Login failed: ${data.error}`);
+          }
+        } catch (e: any) {
+          showToast(`Error: ${e.message}`);
+        }
+      });
+    });
+
+    // Handle Login Form Submit
+    loginForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(loginForm);
+      const email = formData.get('email') as string;
+      const password = formData.get('password') as string;
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          closeAuthModal();
+          playAudioBeep();
+          showToast('Signed in successfully!');
+          checkUserSession();
+        } else {
+          showToast(`Login Error: ${data.error}`);
+        }
+      } catch (err: any) {
+        showToast(`Error: ${err.message}`);
+      }
+    });
+
+    // Handle Register Form Submit
+    registerForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(registerForm);
+      const name = formData.get('name') as string;
+      const email = formData.get('email') as string;
+      const department = formData.get('department') as string;
+      const password = formData.get('password') as string;
+
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, department, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          closeAuthModal();
+          playAudioBeep();
+          showToast('Account created! +100 Green Points welcomed.');
+          checkUserSession();
+        } else {
+          showToast(`Registration Error: ${data.error}`);
+        }
+      } catch (err: any) {
+        showToast(`Error: ${err.message}`);
+      }
+    });
+
+    // Handle Logout
+    navLogoutBtn?.addEventListener('click', async () => {
+      try {
+        await fetch('/api/auth/logout', { method: 'POST' });
+        (window as any).currentUser = null;
+        updateAuthUI();
+        userDropdown?.classList.add('hidden');
+        showToast('Signed out of CampusLoop.');
+      } catch (e) {
+        // Fallback
+      }
+    });
+
+    // 8. Image Upload & Photo Selection in List Modal
+    const imageFileInput = document.getElementById('item-image-file') as HTMLInputElement;
+    const imagePreview = document.getElementById('image-preview') as HTMLImageElement;
+    const imagePlaceholderIcon = document.getElementById('image-placeholder-icon');
+    const finalImageUrlInput = document.getElementById('final-image-url') as HTMLInputElement;
+    const presetSelect = document.getElementById('preset-image-select') as HTMLSelectElement;
+
+    imageFileInput?.addEventListener('change', () => {
+      const file = imageFileInput.files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const result = e.target?.result as string;
+          if (imagePreview && finalImageUrlInput) {
+            imagePreview.src = result;
+            imagePreview.classList.remove('hidden');
+            imagePlaceholderIcon?.classList.add('hidden');
+            finalImageUrlInput.value = result;
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    presetSelect?.addEventListener('change', () => {
+      if (imagePreview && finalImageUrlInput) {
+        imagePreview.src = presetSelect.value;
+        imagePreview.classList.remove('hidden');
+        imagePlaceholderIcon?.classList.add('hidden');
+        finalImageUrlInput.value = presetSelect.value;
+      }
+    });
+
+    // 9. QR Verification Modal Handling
+    const qrModal = document.getElementById('qr-verification-modal');
+    const openQRBtn = document.getElementById('open-qr-modal-btn');
+    const heroQRBtn = document.getElementById('hero-qr-trigger');
+    const footerQRBtn = document.getElementById('footer-qr-trigger');
+    const closeQRBtn = document.getElementById('close-qr-modal-btn');
+
+    openQRBtn?.addEventListener('click', () => openQRModal());
+    heroQRBtn?.addEventListener('click', () => openQRModal());
+    footerQRBtn?.addEventListener('click', () => openQRModal());
+    closeQRBtn?.addEventListener('click', closeQRModal);
+    qrModal?.addEventListener('click', (e) => {
+      if (e.target === qrModal) closeQRModal();
+    });
+
+    const tabGenerate = document.getElementById('tab-btn-generate');
+    const tabScan = document.getElementById('tab-btn-scan');
+    const viewDisplayQR = document.getElementById('view-display-qr');
+    const viewScanQR = document.getElementById('view-scan-qr');
+
+    tabGenerate?.addEventListener('click', () => {
+      tabGenerate.classList.add('bg-emerald-500', 'text-slate-950');
+      tabGenerate.classList.remove('bg-slate-800', 'text-slate-300');
+      tabScan?.classList.remove('bg-emerald-500', 'text-slate-950');
+      tabScan?.classList.add('bg-slate-800', 'text-slate-300');
+      viewDisplayQR?.classList.remove('hidden');
+      viewScanQR?.classList.add('hidden');
+    });
+
+    tabScan?.addEventListener('click', () => {
+      tabScan.classList.add('bg-emerald-500', 'text-slate-950');
+      tabScan.classList.remove('bg-slate-800', 'text-slate-300');
+      tabGenerate?.classList.remove('bg-emerald-500', 'text-slate-950');
+      tabGenerate?.classList.add('bg-slate-800', 'text-slate-300');
+      viewScanQR?.classList.remove('hidden');
+      viewDisplayQR?.classList.add('hidden');
+    });
+
+    // Real QR / PIN Handover Verification
+    const confirmHandoverBtn = document.getElementById('confirm-handover-btn');
+    confirmHandoverBtn?.addEventListener('click', async () => {
+      if (!currentQRTransaction?.requestId) {
+        showToast('Please select an active transaction to verify.');
+        return;
+      }
+      const pinInput = document.getElementById('verification-pin-input') as HTMLInputElement;
+      const code = pinInput?.value.trim() || currentQRTransaction.pin;
+
+      try {
+        const res = await fetch('/api/requests/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            requestId: currentQRTransaction.requestId,
+            code
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showToast(`Verification Error: ${data.error}`);
+          return;
+        }
+
+        playAudioBeep();
+        const successMsg = document.getElementById('qr-success-message');
+        const badge = document.getElementById('transaction-state-badge');
+        if (successMsg) successMsg.classList.remove('hidden');
+        if (badge) {
+          badge.textContent = 'HANDOVER COMPLETED';
+          badge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+        }
+
+        showToast('Handover verified! +35 Green Points credited.');
+        checkUserSession();
+        fetchUserRequests();
+
+        setTimeout(() => {
+          closeQRModal();
+          if (successMsg) successMsg.classList.add('hidden');
+        }, 2200);
+      } catch (e: any) {
+        showToast(`Verification failed: ${e.message}`);
+      }
+    });
+
+    // 9.5 Notifications Popover
+    const notifsBtn = document.getElementById('notifications-bell-btn');
+    const notifsPopover = document.getElementById('notifications-popover');
+    const markReadBtn = document.getElementById('mark-notifications-read-btn');
+
+    notifsBtn?.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      if (notifsPopover) {
+        notifsPopover.classList.toggle('hidden');
+        if (!notifsPopover.classList.contains('hidden')) {
+          await fetch('/api/notifications', { method: 'POST' });
+          const badge = document.getElementById('notifications-badge');
+          if (badge) badge.classList.add('hidden');
+          const unreadCount = document.getElementById('notifications-unread-count');
+          if (unreadCount) unreadCount.textContent = '0 new';
+        }
+      }
+    });
+
+    markReadBtn?.addEventListener('click', async () => {
+      await fetch('/api/notifications', { method: 'POST' });
+      fetchNotifications();
+    });
+
+    document.addEventListener('click', (e) => {
+      if (notifsPopover && !notifsPopover.contains(e.target as Node) && e.target !== notifsBtn) {
+        notifsPopover.classList.add('hidden');
+      }
+    });
+
+    // 10. Active Loans Drawer Handling
+    const loansBackdrop = document.getElementById('loans-drawer-backdrop');
+    const openLoansBtn = document.getElementById('open-loans-drawer-btn');
+    const viewMyLoansBtn = document.getElementById('view-my-loans-btn');
+    const closeLoansBtn = document.getElementById('close-loans-drawer-btn');
+
+    openLoansBtn?.addEventListener('click', openLoansDrawer);
+    viewMyLoansBtn?.addEventListener('click', () => {
+      userDropdown?.classList.add('hidden');
+      openLoansDrawer();
+    });
+    closeLoansBtn?.addEventListener('click', closeLoansDrawer);
+    loansBackdrop?.addEventListener('click', closeLoansDrawer);
+
+    document.querySelectorAll('.initiate-return-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const itemTitle = (e.currentTarget as HTMLElement).dataset.itemTitle || '';
+        closeLoansDrawer();
+        openQRModal(itemTitle);
+      });
+    });
+
+    // 11. List an Item Modal Handling (POST to /api/items)
+    const listModal = document.getElementById('list-item-modal');
+    const openListBtn = document.getElementById('open-list-modal-btn');
+    const footerListBtn = document.getElementById('footer-list-trigger');
+    const closeListBtn = document.getElementById('close-list-modal-btn');
+    const newItemForm = document.getElementById('new-item-form') as HTMLFormElement;
+
+    function openListModal() {
+      const user = (window as any).currentUser;
+      if (!user) {
+        showToast('Please sign in first to list an academic item.');
+        openAuthModal('login');
+        return;
+      }
+      if (listModal) {
+        listModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    function closeListModal() {
+      if (listModal) {
+        listModal.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+    }
+
+    openListBtn?.addEventListener('click', openListModal);
+    footerListBtn?.addEventListener('click', openListModal);
+    closeListBtn?.addEventListener('click', closeListModal);
+    listModal?.addEventListener('click', (e) => {
+      if (e.target === listModal) closeListModal();
+    });
+
+    newItemForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(newItemForm);
+      const title = formData.get('title') as string;
+      const category = formData.get('category') as string;
+      const action_type = formData.get('actionType') as string;
+      const condition = formData.get('condition') as string;
+      const department = formData.get('department') as string;
+      const location = formData.get('location') as string;
+      const description = formData.get('description') as string;
+      const image_url = formData.get('image_url') as string;
+
+      try {
+        const res = await fetch('/api/items', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title,
+            category,
+            action_type,
+            condition,
+            department,
+            location,
+            description,
+            image_url: image_url || '/images/arduino_kit.jpg'
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          showToast(`Error: ${data.error}`);
+          return;
+        }
+
+        // Dynamically prepend new item card
+        const container = document.getElementById('resource-cards-container');
+        const user = (window as any).currentUser;
+        if (container) {
+          const newCard = document.createElement('article');
+          newCard.className = 'resource-card group bg-slate-900/80 rounded-2xl border border-emerald-500/50 transition-all duration-200 overflow-hidden flex flex-col shadow-md hover:shadow-xl hover:shadow-emerald-500/5 animate-fade-in';
+          newCard.dataset.action = action_type;
+          newCard.dataset.category = category;
+          newCard.dataset.department = department;
+          newCard.dataset.points = '35';
+          newCard.dataset.title = title;
+          newCard.dataset.owner = user ? user.name : 'You';
+
+          const actionBadge = action_type === 'borrow' ? 'Borrow (Up to 14 Days)' : action_type === 'exchange' ? 'Exchange' : action_type === 'buy' ? 'Buy / Sell' : 'Free Donation';
+
+          newCard.innerHTML = `
+            <div class="relative aspect-square w-full overflow-hidden bg-slate-950">
+              <img src="${image_url || '/images/arduino_kit.jpg'}" alt="${title}" width="400" height="400" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+              <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                <span class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-emerald-500 text-slate-950 shadow-md">${actionBadge}</span>
+                <span class="px-2 py-1 text-[10px] font-semibold rounded-lg bg-slate-900/90 text-emerald-300 border border-emerald-500/30 backdrop-blur-md">${condition}</span>
+              </div>
+              <div class="absolute top-3 right-3 px-2 py-1 rounded-lg bg-emerald-950/90 text-emerald-300 text-xs font-bold border border-emerald-500/40 backdrop-blur-md flex items-center gap-1 shadow-md">
+                <span class="tabular-nums font-semibold">+35 pts</span>
+              </div>
+            </div>
+            <div class="p-5 flex-1 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between text-xs text-slate-400 mb-1.5">
+                  <span class="font-semibold text-emerald-400">${category} • ${department}</span>
+                  <span class="flex items-center gap-1 text-emerald-400 font-semibold">New Listing</span>
+                </div>
+                <h3 class="text-base font-bold text-white group-hover:text-emerald-300 transition-colors duration-150 line-clamp-1">${title}</h3>
+                <p class="text-xs text-slate-400 mt-2 line-clamp-2 leading-relaxed">${description || 'Student listed academic resource available for handover.'}</p>
+                <div class="mt-3 flex items-center gap-1.5 text-[11px] text-slate-400">
+                  <span class="truncate">${location}</span>
+                </div>
+              </div>
+              <div class="mt-5 pt-4 border-t border-slate-800 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2">
+                  <div class="w-7 h-7 rounded-full bg-slate-800 border border-emerald-500/40 text-[10px] font-bold text-emerald-400 flex items-center justify-center">${user ? user.avatar : 'ME'}</div>
+                  <div class="text-[11px] leading-tight">
+                    <span class="font-semibold text-slate-200 block">${user ? user.name : 'You'}</span>
+                    <span class="text-slate-500 text-[10px]">Your Listing</span>
+                  </div>
+                </div>
+                <span class="text-xs font-bold text-emerald-400 px-3 py-1 bg-emerald-950/40 border border-emerald-500/30 rounded-xl">Published</span>
+              </div>
+            </div>
+          `;
+
+          container.prepend(newCard);
+        }
+
+        playAudioBeep();
+        closeListModal();
+        newItemForm.reset();
+        showToast(`"${title}" published to database! +20 Green Points awarded.`);
+        applyFilters();
+      } catch (err: any) {
+        showToast(`Failed to publish: ${err.message}`);
+      }
+    });
+
+    // 12. Request Item Modal Handling (POST to /api/requests)
+    const requestModal = document.getElementById('request-item-modal');
+    const closeRequestBtn = document.getElementById('close-request-modal-btn');
+    const requestForm = document.getElementById('item-request-form') as HTMLFormElement;
+
+    function openRequestModal(itemId: string, title: string, owner: string) {
+      const user = (window as any).currentUser;
+      if (!user) {
+        showToast('Please sign in to send a request.');
+        openAuthModal('login');
+        return;
+      }
+      activeTargetItemId = itemId;
+      if (requestModal) {
+        const titleElem = document.getElementById('request-target-title');
+        const ownerElem = document.getElementById('request-target-owner');
+        if (titleElem) titleElem.textContent = title;
+        if (ownerElem) ownerElem.textContent = `Owner: ${owner}`;
+        requestModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    function closeRequestModal() {
+      if (requestModal) {
+        requestModal.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+    }
+
+    document.querySelectorAll('.request-item-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const target = e.currentTarget as HTMLElement;
+        const itemId = target.dataset.itemId || 'CL-ITEM-01';
+        const title = target.dataset.itemTitle || '';
+        const owner = target.dataset.itemOwner || '';
+        openRequestModal(itemId, title, owner);
+      });
+    });
+
+    closeRequestBtn?.addEventListener('click', closeRequestModal);
+    requestModal?.addEventListener('click', (e) => {
+      if (e.target === requestModal) closeRequestModal();
+    });
+
+    requestForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const durationSelect = document.getElementById('request-duration-select') as HTMLSelectElement;
+      const spotSelect = document.getElementById('request-meeting-spot') as HTMLSelectElement;
+      const notesInput = document.getElementById('request-notes-input') as HTMLInputElement;
+
+      try {
+        const res = await fetch('/api/requests', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            itemId: activeTargetItemId,
+            durationDays: durationSelect ? Number(durationSelect.value) : 14,
+            proposedSpot: spotSelect ? spotSelect.value : 'Library Ground Floor',
+            notes: notesInput ? notesInput.value : ''
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          showToast(`Error: ${data.error}`);
+          return;
+        }
+
+        closeRequestModal();
+        playAudioBeep();
+        showToast('Request sent directly to the owner! Recorded in database.');
+        fetchUserRequests();
+      } catch (err: any) {
+        showToast(`Request Error: ${err.message}`);
+      }
+    });
+
+    function closeAllModals() {
+      closeQRModal();
+      closeLoansDrawer();
+      closeListModal();
+      closeRequestModal();
+      closeAuthModal();
+    }
+  });
+</script>

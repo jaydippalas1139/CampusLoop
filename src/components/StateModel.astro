@@ -1,0 +1,98 @@
+---
+// src/components/StateModel.astro
+---
+
+<section id="state-model" class="py-14 border-t border-slate-800 bg-[#070d18]">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center max-w-3xl mx-auto mb-10">
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold mb-3">
+        <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        <span>Protocol State Machine</span>
+      </div>
+      <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+        Transaction Lifecycle & Accountability
+      </h2>
+      <p class="text-sm text-slate-400 mt-2">
+        Every CampusLoop transaction executes along a deterministic server-side state machine ensuring zero overlapping bookings and full physical verification.
+      </p>
+    </div>
+
+    <!-- State Diagram Stepper -->
+    <div class="bg-slate-900/90 rounded-3xl border border-slate-800 p-6 sm:p-8 shadow-xl">
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-4 relative">
+        <!-- Step 1: Requested -->
+        <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col justify-between">
+          <div>
+            <div class="w-7 h-7 rounded-lg bg-slate-800 text-slate-300 font-bold text-xs flex items-center justify-center mb-3">
+              1
+            </div>
+            <h3 class="text-sm font-bold text-white">REQUESTED</h3>
+            <p class="text-xs text-slate-400 mt-1">
+              Borrower selects duration & campus spot. Overlap formula checked: $d_i \le s_j$.
+            </p>
+          </div>
+          <span class="mt-4 text-[10px] text-slate-500 uppercase font-semibold block">Owner Pending</span>
+        </div>
+
+        <!-- Step 2: Approved -->
+        <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col justify-between">
+          <div>
+            <div class="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-400 font-bold text-xs flex items-center justify-center mb-3">
+              2
+            </div>
+            <h3 class="text-sm font-bold text-white">APPROVED</h3>
+            <p class="text-xs text-slate-400 mt-1">
+              Owner accepts request. Server locks concurrent requests and issues signed token.
+            </p>
+          </div>
+          <span class="mt-4 text-[10px] text-indigo-400 uppercase font-semibold block">Signed Token Issued</span>
+        </div>
+
+        <!-- Step 3: QR Handover -->
+        <div class="p-4 rounded-2xl bg-slate-950 border border-emerald-500/50 shadow-md shadow-emerald-500/10 flex flex-col justify-between">
+          <div>
+            <div class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 font-bold text-xs flex items-center justify-center mb-3">
+              3
+            </div>
+            <h3 class="text-sm font-bold text-emerald-400">QR HANDOVER</h3>
+            <p class="text-xs text-slate-400 mt-1">
+              Meeting at campus spot. Dual QR scan verifies physical handover and condition.
+            </p>
+          </div>
+          <span class="mt-4 text-[10px] text-emerald-400 uppercase font-semibold block">State: BORROWED</span>
+        </div>
+
+        <!-- Step 4: Return Pending -->
+        <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col justify-between">
+          <div>
+            <div class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 font-bold text-xs flex items-center justify-center mb-3">
+              4
+            </div>
+            <h3 class="text-sm font-bold text-white">QR RETURN</h3>
+            <p class="text-xs text-slate-400 mt-1">
+              Borrower returns item before due date. Fresh return-event token scanned by owner.
+            </p>
+          </div>
+          <span class="mt-4 text-[10px] text-amber-400 uppercase font-semibold block">Condition Audit</span>
+        </div>
+
+        <!-- Step 5: Completed -->
+        <div class="p-4 rounded-2xl bg-slate-950 border border-emerald-500/40 flex flex-col justify-between">
+          <div>
+            <div class="w-7 h-7 rounded-lg bg-emerald-500 text-slate-950 font-bold text-xs flex items-center justify-center mb-3">
+              ✓
+            </div>
+            <h3 class="text-sm font-bold text-white">COMPLETED</h3>
+            <p class="text-xs text-slate-400 mt-1">
+              Both parties confirmed. Item back to AVAILABLE. Green Points credited to both.
+            </p>
+          </div>
+          <span class="mt-4 text-[10px] text-emerald-400 uppercase font-semibold block">+Points Awarded</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

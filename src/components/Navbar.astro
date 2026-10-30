@@ -1,0 +1,199 @@
+---
+// src/components/Navbar.astro
+---
+
+<header class="sticky top-0 z-40 w-full backdrop-blur-xl bg-[#09111e]/95 border-b border-slate-800/80 shadow-lg">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16 gap-4">
+      <!-- Logo & Brand Lockup -->
+      <a href="/" class="flex items-center gap-3 group focus-visible:ring-2 focus-visible:ring-emerald-400 rounded-lg p-1" aria-label="CampusLoop Home">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform duration-200">
+          <svg class="w-6 h-6 text-slate-950" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18.178 8c5.096 0 5.096 8 0 8-5.095 0-7.133-8-12.739-8-4.585 0-4.585 8 0 8 5.606 0 7.644-8 12.74-8z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xl font-bold tracking-tight text-white group-hover:text-emerald-400 transition-colors duration-150">CampusLoop</span>
+            <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-semibold border border-emerald-500/20">Silver Oak</span>
+          </div>
+          <p class="text-[11px] text-slate-400 hidden sm:block">Peer Resource Sharing</p>
+        </div>
+      </a>
+
+      <!-- Quick Search Bar -->
+      <div class="flex-1 max-w-md hidden md:block">
+        <div class="relative">
+          <label for="global-search-input" class="sr-only">Search books, calculators, lab gear</label>
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <input 
+            type="search" 
+            id="global-search-input" 
+            placeholder="Search textbooks, calculators, Arduino kits…" 
+            class="w-full pl-9 pr-12 py-2 text-sm bg-slate-900/90 border border-slate-700/80 rounded-xl text-slate-100 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all duration-150"
+          />
+          <kbd class="absolute right-3 top-2.5 px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-slate-800 border border-slate-700 rounded select-none pointer-events-none">/</kbd>
+        </div>
+      </div>
+
+      <!-- Action Buttons & User Controls -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Open QR Handover Protocol Button -->
+        <button 
+          type="button"
+          id="open-qr-modal-btn"
+          class="flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-xl bg-slate-800/80 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-950/40 hover:border-emerald-500/60 transition-colors duration-150 shadow-sm"
+          aria-label="Open QR Verification Handover Modal"
+        >
+          <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+            <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+            <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+            <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+          </svg>
+          <span class="hidden sm:inline">QR Handover</span>
+        </button>
+
+        <!-- Notifications Bell -->
+        <div class="relative">
+          <button 
+            type="button" 
+            id="notifications-bell-btn" 
+            class="relative p-2 text-slate-300 hover:text-emerald-400 bg-slate-900/80 border border-slate-800 rounded-xl hover:border-slate-700 transition-colors duration-150"
+            aria-label="View notifications"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+            <span id="notifications-badge" class="hidden absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-amber-500 text-slate-950 font-bold text-[10px] rounded-full flex items-center justify-center shadow-sm">
+              0
+            </span>
+          </button>
+
+          <!-- Notifications Dropdown Popover -->
+          <div id="notifications-popover" class="hidden absolute right-0 mt-2 w-80 sm:w-96 bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl py-3 z-50 overflow-hidden">
+            <div class="px-4 pb-2 border-b border-slate-800 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-white text-xs">Notifications</span>
+                <span id="notifications-unread-count" class="px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-semibold">0 new</span>
+              </div>
+              <button type="button" id="mark-notifications-read-btn" class="text-[11px] text-slate-400 hover:text-emerald-400 transition-colors">Mark read</button>
+            </div>
+            <div id="notifications-list" class="max-h-72 overflow-y-auto divide-y divide-slate-800/60 text-xs">
+              <div class="p-6 text-center text-slate-500 text-xs">No notifications yet</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Active Loans & Incoming Requests Drawer Trigger -->
+        <button 
+          type="button" 
+          id="open-loans-drawer-btn" 
+          class="relative p-2 text-slate-300 hover:text-emerald-400 bg-slate-900/80 border border-slate-800 rounded-xl hover:border-slate-700 transition-colors duration-150"
+          aria-label="View Active Borrowings and Lendings"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <span id="active-loans-counter" class="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 bg-emerald-500 text-slate-950 font-bold text-[11px] rounded-full flex items-center justify-center shadow-sm">
+            0
+          </span>
+        </button>
+
+        <!-- Green Points Wallet Trigger (SVG leaf instead of emoji) -->
+        <a 
+          href="#leaderboard" 
+          class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-xs font-semibold text-emerald-300 hover:bg-emerald-900/50 transition-colors duration-150"
+          aria-label="Green Points Balance"
+        >
+          <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+            <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+          </svg>
+          <span id="green-points-badge" class="font-bold tabular-nums">480</span>
+          <span class="hidden md:inline text-emerald-400/80">pts</span>
+        </a>
+
+        <!-- List an Item Primary CTA -->
+        <button 
+          type="button" 
+          id="open-list-modal-btn"
+          class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-bold text-xs sm:text-sm hover:from-emerald-400 hover:to-teal-400 shadow-md shadow-emerald-500/20 transition-all duration-150 active:scale-95"
+          aria-label="List a resource to lend, exchange or donate"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+          </svg>
+          <span>Share Item</span>
+        </button>
+
+        <!-- User Authentication & Profile Pill -->
+        <div id="auth-container" class="flex items-center gap-2 pl-2 border-l border-slate-800">
+          <!-- Logged Out View -->
+          <button 
+            type="button" 
+            id="nav-login-btn"
+            class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs border border-slate-700 transition-colors duration-150"
+          >
+            Sign In
+          </button>
+
+          <!-- Logged In View -->
+          <div id="nav-user-pill" class="hidden relative group">
+            <button 
+              type="button" 
+              id="user-menu-trigger" 
+              class="flex items-center gap-2 p-1 rounded-xl hover:bg-slate-800/60 transition-colors text-left"
+              aria-haspopup="true" 
+              aria-expanded="false"
+            >
+              <div id="user-avatar" class="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center font-bold text-xs text-emerald-300">
+                DC
+              </div>
+              <div class="hidden lg:block text-xs leading-tight">
+                <div class="font-semibold text-slate-200 flex items-center gap-1">
+                  <span id="user-display-name">Dipesh Chauhan</span>
+                  <svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <span id="user-display-dept" class="text-[10px] text-slate-400">CSE Department</span>
+              </div>
+            </button>
+
+            <!-- User Dropdown Menu -->
+            <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl py-2 z-50 text-xs space-y-1">
+              <div class="px-3 py-2 border-b border-slate-800">
+                <p id="dropdown-user-email" class="text-[11px] text-slate-400 truncate">dipesh@campusloop.in</p>
+              </div>
+              <button 
+                type="button" 
+                id="view-my-loans-btn" 
+                class="w-full text-left px-3 py-2 text-slate-300 hover:text-white hover:bg-slate-800 flex items-center gap-2"
+              >
+                <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+                <span>My Requests & Loans</span>
+              </button>
+              <button 
+                type="button" 
+                id="nav-logout-btn" 
+                class="w-full text-left px-3 py-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 flex items-center gap-2 border-t border-slate-800/80"
+              >
+                <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span>Sign Out</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>

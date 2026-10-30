@@ -1,0 +1,176 @@
+---
+// src/components/GreenPointsLeaderboard.astro
+---
+
+<section id="leaderboard" class="py-14 border-t border-slate-800 bg-gradient-to-b from-[#09111e] via-[#0d1829] to-[#09111e]">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center max-w-3xl mx-auto mb-10">
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold mb-3">
+        <svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+          <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+        </svg>
+        <span>Campus Sustainability Model</span>
+      </div>
+      <h2 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+        Green Points & Peer Leaderboard
+      </h2>
+      <p class="text-sm text-slate-400 mt-2 max-w-xl mx-auto">
+        Rewarding verified resource sharing, on-time returns, and intact condition handovers across campus batches.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+      <!-- Leaderboard Table (2 Columns) -->
+      <div class="lg:col-span-2 bg-slate-900/90 rounded-3xl border border-slate-800 p-6 shadow-xl">
+        <div class="flex items-center justify-between mb-5 pb-3 border-b border-slate-800">
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+            </svg>
+            <span>Top Student Contributors</span>
+          </h3>
+          <span class="text-xs text-emerald-400 font-semibold bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-500/30">
+            Current Semester
+          </span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead>
+              <tr class="text-slate-400 border-b border-slate-800/80">
+                <th class="pb-3 font-semibold">Rank</th>
+                <th class="pb-3 font-semibold">Student Name</th>
+                <th class="pb-3 font-semibold">Department</th>
+                <th class="pb-3 font-semibold text-center">Handovers</th>
+                <th class="pb-3 font-semibold text-right">Green Points</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/50">
+              <!-- Rank 1: Dipesh Chauhan -->
+              <tr class="hover:bg-slate-800/40 transition-colors">
+                <td class="py-3">
+                  <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30 text-[11px]">#1</span>
+                </td>
+                <td class="py-3 font-semibold text-white flex items-center gap-2">
+                  <div class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-[10px]">
+                    DC
+                  </div>
+                  <span>Dipesh Chauhan</span>
+                </td>
+                <td class="py-3 text-slate-400">Computer Science & Engg</td>
+                <td class="py-3 text-center text-slate-300 tabular-nums">24</td>
+                <td class="py-3 text-right font-bold text-emerald-400 tabular-nums">480 pts</td>
+              </tr>
+
+              <!-- Rank 2: Ajay Vaniya -->
+              <tr class="hover:bg-slate-800/40 transition-colors">
+                <td class="py-3">
+                  <span class="px-2 py-0.5 rounded-full bg-slate-700/60 text-slate-200 font-bold border border-slate-600 text-[11px]">#2</span>
+                </td>
+                <td class="py-3 font-semibold text-white flex items-center gap-2">
+                  <div class="w-6 h-6 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center font-bold text-[10px]">
+                    AV
+                  </div>
+                  <span>Ajay Vaniya</span>
+                </td>
+                <td class="py-3 text-slate-400">Computer Science & Engg</td>
+                <td class="py-3 text-center text-slate-300 tabular-nums">18</td>
+                <td class="py-3 text-right font-bold text-emerald-400 tabular-nums">410 pts</td>
+              </tr>
+
+              <!-- Rank 3: Nisarg Trivedi -->
+              <tr class="hover:bg-slate-800/40 transition-colors">
+                <td class="py-3">
+                  <span class="px-2 py-0.5 rounded-full bg-amber-700/30 text-amber-400 font-bold border border-amber-600/30 text-[11px]">#3</span>
+                </td>
+                <td class="py-3 font-semibold text-white flex items-center gap-2">
+                  <div class="w-6 h-6 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center font-bold text-[10px]">
+                    NT
+                  </div>
+                  <span>Nisarg Trivedi</span>
+                </td>
+                <td class="py-3 text-slate-400">Computer Science & Engg</td>
+                <td class="py-3 text-center text-slate-300 tabular-nums">16</td>
+                <td class="py-3 text-right font-bold text-emerald-400 tabular-nums">390 pts</td>
+              </tr>
+
+              <!-- Rank 4: Nilrajsinh Gohil -->
+              <tr class="hover:bg-slate-800/40 transition-colors">
+                <td class="py-3 text-slate-500 font-semibold pl-2">#4</td>
+                <td class="py-3 font-semibold text-white flex items-center gap-2">
+                  <div class="w-6 h-6 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center font-bold text-[10px]">
+                    NG
+                  </div>
+                  <span>Nilrajsinh Gohil</span>
+                </td>
+                <td class="py-3 text-slate-400">Computer Science & Engg</td>
+                <td class="py-3 text-center text-slate-300 tabular-nums">14</td>
+                <td class="py-3 text-right font-bold text-emerald-400 tabular-nums">360 pts</td>
+              </tr>
+
+              <!-- Rank 5: Priya Sharma -->
+              <tr class="hover:bg-slate-800/40 transition-colors">
+                <td class="py-3 text-slate-500 font-semibold pl-2">#5</td>
+                <td class="py-3 font-semibold text-white flex items-center gap-2">
+                  <div class="w-6 h-6 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center font-bold text-[10px]">
+                    PS
+                  </div>
+                  <span>Priya Sharma</span>
+                </td>
+                <td class="py-3 text-slate-400">Chemical Sciences</td>
+                <td class="py-3 text-center text-slate-300 tabular-nums">11</td>
+                <td class="py-3 text-right font-bold text-emerald-400 tabular-nums">310 pts</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Campus Perks Redemption Card -->
+      <div class="bg-slate-900/90 rounded-3xl border border-slate-800 p-6 shadow-xl space-y-4">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+          </svg>
+          <span>Redeemable Campus Perks</span>
+        </h3>
+        <p class="text-xs text-slate-400 leading-relaxed">
+          Points earned on completed transactions can be redeemed for official campus privileges:
+        </p>
+
+        <div class="space-y-3 pt-2">
+          <div class="p-3 bg-slate-950 rounded-2xl border border-slate-800 flex items-center justify-between">
+            <div>
+              <div class="text-xs font-bold text-slate-200">Campus Canteen Coffee</div>
+              <div class="text-[11px] text-slate-500">Tech Cafeteria Voucher</div>
+            </div>
+            <button type="button" class="px-2.5 py-1 text-xs font-bold rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500 hover:text-slate-950 transition-colors">
+              150 pts
+            </button>
+          </div>
+
+          <div class="p-3 bg-slate-950 rounded-2xl border border-slate-800 flex items-center justify-between">
+            <div>
+              <div class="text-xs font-bold text-slate-200">Library Study Pod Priority</div>
+              <div class="text-[11px] text-slate-500">Advance booking access</div>
+            </div>
+            <button type="button" class="px-2.5 py-1 text-xs font-bold rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500 hover:text-slate-950 transition-colors">
+              250 pts
+            </button>
+          </div>
+
+          <div class="p-3 bg-slate-950 rounded-2xl border border-slate-800 flex items-center justify-between">
+            <div>
+              <div class="text-xs font-bold text-slate-200">Dean's Eco Commendation</div>
+              <div class="text-[11px] text-slate-500">Official certificate on file</div>
+            </div>
+            <button type="button" class="px-2.5 py-1 text-xs font-bold rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500 hover:text-slate-950 transition-colors">
+              500 pts
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

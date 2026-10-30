@@ -1,0 +1,626 @@
+---
+// src/components/ResourceGrid.astro
+---
+
+<section id="resource-grid" class="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <!-- Section Title & Live Availability Indicator -->
+  <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+    <div>
+      <div class="flex items-center gap-2 text-emerald-400 text-xs font-bold tracking-wider uppercase mb-1">
+        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+        <span>Peer-to-Peer Inventory</span>
+      </div>
+      <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+        Available Campus Resources
+      </h2>
+      <p class="text-sm text-slate-400 mt-1">
+        Browse peer-owned items ready for physical handover at approved Silver Oak University campus locations.
+      </p>
+    </div>
+
+    <!-- Active Filter Status -->
+    <div class="flex items-center gap-2 text-xs text-slate-300">
+      <span class="font-medium text-slate-400">Showing:</span>
+      <span id="filtered-items-count" class="font-bold text-emerald-400 tabular-nums">6</span> items available
+    </div>
+  </div>
+
+  <!-- Filters & Controls Bar -->
+  <div class="bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-2xl p-4 mb-8 shadow-sm">
+    <div class="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between">
+      <!-- Action Type Filter Pills -->
+      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0" role="tablist" aria-label="Filter by Transaction Action Type">
+        <button 
+          type="button" 
+          class="action-filter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500 text-slate-950 transition-all duration-150 shadow-sm" 
+          data-action="all"
+          role="tab"
+          aria-selected="true"
+        >
+          All Actions
+        </button>
+        <button 
+          type="button" 
+          class="action-filter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition-all duration-150" 
+          data-action="borrow"
+          role="tab"
+          aria-selected="false"
+        >
+          Borrow / Lend
+        </button>
+        <button 
+          type="button" 
+          class="action-filter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition-all duration-150" 
+          data-action="exchange"
+          role="tab"
+          aria-selected="false"
+        >
+          Exchange
+        </button>
+        <button 
+          type="button" 
+          class="action-filter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition-all duration-150" 
+          data-action="donate"
+          role="tab"
+          aria-selected="false"
+        >
+          Free Donation
+        </button>
+      </div>
+
+      <!-- Category & Department Selectors -->
+      <div class="flex items-center gap-2 flex-wrap">
+        <label for="category-select" class="sr-only">Filter by Category</label>
+        <select 
+          id="category-select" 
+          class="bg-slate-800/90 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 transition-colors duration-150"
+        >
+          <option value="all">All Categories</option>
+          <option value="Calculators">Calculators</option>
+          <option value="Electronics">Electronics & MCUs</option>
+          <option value="Books & Notes">Books & Exam Notes</option>
+          <option value="Lab & Workshop Gear">Lab & Workshop Gear</option>
+        </select>
+
+        <label for="department-select" class="sr-only">Filter by Department</label>
+        <select 
+          id="department-select" 
+          class="bg-slate-800/90 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 transition-colors duration-150"
+        >
+          <option value="all">All Departments</option>
+          <option value="CSE">Computer Science & Engg</option>
+          <option value="IT">Information Technology</option>
+          <option value="Mechanical">Mechanical Engineering</option>
+          <option value="Chemical">Chemical Sciences</option>
+        </select>
+
+        <label for="sort-select" class="sr-only">Sort resources</label>
+        <select 
+          id="sort-select" 
+          class="bg-slate-800/90 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 transition-colors duration-150"
+        >
+          <option value="recommended">Featured / Highest Rating</option>
+          <option value="points-high">Highest Green Points</option>
+          <option value="duration-short">Quickest Return</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resource Cards Grid -->
+  <div id="resource-cards-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <!-- Item 1: Casio fx-991EX -->
+    <article 
+      class="resource-card group bg-slate-900/80 rounded-2xl border border-slate-800 hover:border-emerald-500/50 transition-all duration-200 overflow-hidden flex flex-col shadow-md hover:shadow-xl hover:shadow-emerald-500/5"
+      data-action="borrow"
+      data-category="Calculators"
+      data-department="CSE"
+      data-points="30"
+      data-title="Casio fx-991EX ClassWiz Scientific Calculator"
+      data-owner="Ajay Vaniya"
+    >
+      <div class="relative aspect-square w-full overflow-hidden bg-slate-950">
+        <img 
+          src="/images/calculator.jpg" 
+          alt="Casio fx-991EX ClassWiz Scientific Calculator on engineering study desk" 
+          width="400" 
+          height="400" 
+          loading="lazy"
+          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        />
+        <!-- Action Tag Badge -->
+        <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
+          <span class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-emerald-500 text-slate-950 shadow-md">
+            Borrow (Up to 21 Days)
+          </span>
+          <span class="px-2 py-1 text-[10px] font-semibold rounded-lg bg-slate-900/90 text-emerald-300 border border-emerald-500/30 backdrop-blur-md">
+            Like New
+          </span>
+        </div>
+        <!-- Green Points Pill -->
+        <div class="absolute top-3 right-3 px-2 py-1 rounded-lg bg-emerald-950/90 text-emerald-300 text-xs font-bold border border-emerald-500/40 backdrop-blur-md flex items-center gap-1 shadow-md">
+          <span class="tabular-nums">+30 pts</span>
+        </div>
+      </div>
+
+      <div class="p-5 flex-1 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between text-xs text-slate-400 mb-1.5">
+            <span class="font-semibold text-emerald-400">Calculators • CSE</span>
+            <span class="flex items-center gap-1 text-amber-400 font-semibold">★ 4.9 (18 handovers)</span>
+          </div>
+
+          <h3 class="text-base font-bold text-white group-hover:text-emerald-300 transition-colors duration-150 line-clamp-1">
+            Casio fx-991EX ClassWiz Scientific Calculator
+          </h3>
+          <p class="text-xs text-slate-400 mt-2 line-clamp-2 leading-relaxed">
+            High-resolution natural textbook display with 552 functions. Needed for Engineering Mathematics & Physics exams. Dual solar + battery power.
+          </p>
+
+          <!-- Meeting Location Pill -->
+          <div class="mt-3 flex items-center gap-1.5 text-[11px] text-slate-400">
+            <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <span class="truncate">Library Ground Floor Foyer</span>
+          </div>
+        </div>
+
+        <div class="mt-5 pt-4 border-t border-slate-800 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-full bg-slate-800 border border-emerald-500/40 text-[10px] font-bold text-emerald-400 flex items-center justify-center">
+              AV
+            </div>
+            <div class="text-[11px] leading-tight">
+              <span class="font-semibold text-slate-200 block">Ajay Vaniya</span>
+              <span class="text-slate-500 text-[10px]">Verified Peer • Sem 6</span>
+            </div>
+          </div>
+
+          <button 
+            type="button" 
+            class="request-item-btn px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition-colors duration-150 active:scale-95 shadow-sm"
+            data-item-title="Casio fx-991EX ClassWiz Scientific Calculator"
+            data-item-owner="Ajay Vaniya (CSE)"
+            data-item-type="Borrow"
+            data-item-id="CL-ITEM-01"
+            data-item-points="30"
+          >
+            Request Borrow
+          </button>
+        </div>
+      </div>
+    </article>
+
+    <!-- Item 2: Arduino Uno Kit -->
+    <article 
+      class="resource-card group bg-slate-900/80 rounded-2xl border border-slate-800 hover:border-emerald-500/50 transition-all duration-200 overflow-hidden flex flex-col shadow-md hover:shadow-xl hover:shadow-emerald-500/5"
+      data-action="borrow"
+      data-category="Electronics"
+      data-department="CSE"
+      data-points="45"
+      data-title="Arduino Uno R3 Microcontroller Dev Kit + Sensor Pack"
+      data-owner="Nisarg Trivedi"
+    >
+      <div class="relative aspect-square w-full overflow-hidden bg-slate-950">
+        <img 
+          src="/images/arduino_kit.jpg" 
+          alt="Arduino Uno R3 Microcontroller Dev Kit with breadboard and sensor pack" 
+          width="400" 
+          height="400" 
+          loading="lazy"
+          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        />
+        <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
+          <span class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-emerald-500 text-slate-950 shadow-md">
+            Borrow (Up to 14 Days)
+          </span>
+          <span class="px-2 py-1 text-[10px] font-semibold rounded-lg bg-slate-900/90 text-emerald-300 border border-emerald-500/30 backdrop-blur-md">
+            Tested & Verified
+          </span>
+        </div>
+        <div class="absolute top-3 right-3 px-2 py-1 rounded-lg bg-emerald-950/90 text-emerald-300 text-xs font-bold border border-emerald-500/40 backdrop-blur-md flex items-center gap-1 shadow-md">
+          <span>🌿</span>
+          <span class="tabular-nums">+45 pts</span>
+        </div>
+      </div>
+
+      <div class="p-5 flex-1 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between text-xs text-slate-400 mb-1.5">
+            <span class="font-semibold text-emerald-400">Electronics • CSE</span>
+            <span class="flex items-center gap-1 text-amber-400 font-semibold">★ 5.0 (12 handovers)</span>
+          </div>
+
+          <h3 class="text-base font-bold text-white group-hover:text-emerald-300 transition-colors duration-150 line-clamp-1">
+            Arduino Uno R3 Dev Kit + Sensor Pack
+          </h3>
+          <p class="text-xs text-slate-400 mt-2 line-clamp-2 leading-relaxed">
+            Full embedded kit with Arduino Uno, breadboard, HC-SR04 ultrasonic sensor, DHT11 temp sensor, jumper cables, and 5V relay module for IoT lab assignments.
+          </p>
+
+          <div class="mt-3 flex items-center gap-1.5 text-[11px] text-slate-400">
+            <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <span class="truncate">C-Block IoT & Embedded Systems Lab</span>
+          </div>
+        </div>
+
+        <div class="mt-5 pt-4 border-t border-slate-800 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-full bg-slate-800 border border-emerald-500/40 text-[10px] font-bold text-emerald-400 flex items-center justify-center">
+              NT
+            </div>
+            <div class="text-[11px] leading-tight">
+              <span class="font-semibold text-slate-200 block">Nisarg Trivedi</span>
+              <span class="text-slate-500 text-[10px]">Verified Peer • Sem 6</span>
+            </div>
+          </div>
+
+          <button 
+            type="button" 
+            class="request-item-btn px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition-colors duration-150 active:scale-95 shadow-sm"
+            data-item-title="Arduino Uno R3 Dev Kit + Sensor Pack"
+            data-item-owner="Nisarg Trivedi (CSE)"
+            data-item-type="Borrow"
+            data-item-id="CL-ITEM-02"
+            data-item-points="45"
+          >
+            Request Borrow
+          </button>
+        </div>
+      </div>
+    </article>
+
+    <!-- Item 3: Data Structures & Algorithms Textbooks -->
+    <article 
+      class="resource-card group bg-slate-900/80 rounded-2xl border border-slate-800 hover:border-emerald-500/50 transition-all duration-200 overflow-hidden flex flex-col shadow-md hover:shadow-xl hover:shadow-emerald-500/5"
+      data-action="exchange"
+      data-category="Books & Notes"
+      data-department="CSE"
+      data-points="40"
+      data-title="Data Structures & Algorithms in C++ & OS Concepts Textbooks"
+      data-owner="Nilrajsinh Gohil"
+    >
+      <div class="relative aspect-square w-full overflow-hidden bg-slate-950">
+        <img 
+          src="/images/textbooks.jpg" 
+          alt="Data Structures and Operating Systems textbook stack on university library desk" 
+          width="400" 
+          height="400" 
+          loading="lazy"
+          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        />
+        <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
+          <span class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-indigo-500 text-white shadow-md">
+            ⇄ Exchange (Sem 4/5)
+          </span>
+          <span class="px-2 py-1 text-[10px] font-semibold rounded-lg bg-slate-900/90 text-indigo-300 border border-indigo-500/30 backdrop-blur-md">
+            Clean Edition
+          </span>
+        </div>
+        <div class="absolute top-3 right-3 px-2 py-1 rounded-lg bg-emerald-950/90 text-emerald-300 text-xs font-bold border border-emerald-500/40 backdrop-blur-md flex items-center gap-1 shadow-md">
+          <span>🌿</span>
+          <span class="tabular-nums">+40 pts</span>
+        </div>
+      </div>
+
+      <div class="p-5 flex-1 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between text-xs text-slate-400 mb-1.5">
+            <span class="font-semibold text-indigo-400">Books & Notes • CSE</span>
+            <span class="flex items-center gap-1 text-amber-400 font-semibold">★ 4.8 (9 handovers)</span>
+          </div>
+
+          <h3 class="text-base font-bold text-white group-hover:text-emerald-300 transition-colors duration-150 line-clamp-1">
+            Data Structures & OS Concepts Stack
+          </h3>
+          <p class="text-xs text-slate-400 mt-2 line-clamp-2 leading-relaxed">
+            Mark Allen Weiss DSA textbook + Silberschatz Operating System Concepts. Want to swap for 5th Semester Database Management Systems book.
+          </p>
+
+          <div class="mt-3 flex items-center gap-1.5 text-[11px] text-slate-400">
+            <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <span class="truncate">Campus Central Canteen Gazebo</span>
+          </div>
+        </div>
+
+        <div class="mt-5 pt-4 border-t border-slate-800 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-full bg-slate-800 border border-emerald-500/40 text-[10px] font-bold text-emerald-400 flex items-center justify-center">
+              NG
+            </div>
+            <div class="text-[11px] leading-tight">
+              <span class="font-semibold text-slate-200 block">Nilrajsinh Gohil</span>
+              <span class="text-slate-500 text-[10px]">Verified Peer • Sem 5</span>
+            </div>
+          </div>
+
+          <button 
+            type="button" 
+            class="request-item-btn px-3.5 py-1.5 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-xs transition-colors duration-150 active:scale-95 shadow-sm"
+            data-item-title="Data Structures & OS Concepts Stack"
+            data-item-owner="Nilrajsinh Gohil (CSE)"
+            data-item-type="Exchange"
+            data-item-id="CL-ITEM-03"
+            data-item-points="40"
+          >
+            Propose Swap
+          </button>
+        </div>
+      </div>
+    </article>
+
+    <!-- Item 4: Engineering Mini Drafter -->
+    <article 
+      class="resource-card group bg-slate-900/80 rounded-2xl border border-slate-800 hover:border-emerald-500/50 transition-all duration-200 overflow-hidden flex flex-col shadow-md hover:shadow-xl hover:shadow-emerald-500/5"
+      data-action="borrow"
+      data-category="Lab & Workshop Gear"
+      data-department="Mechanical"
+      data-points="35"
+      data-title="Engineering Mini Drafter + Drawing Sheet Container"
+      data-owner="Dipesh Chauhan"
+    >
+      <div class="relative aspect-square w-full overflow-hidden bg-slate-950">
+        <img 
+          src="/images/mini_drafter.jpg" 
+          alt="Engineering student drawing mini-drafter tool in university studio" 
+          width="400" 
+          height="400" 
+          loading="lazy"
+          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        />
+        <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
+          <span class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-emerald-500 text-slate-950 shadow-md">
+            Borrow (Sem Long / 60 Days)
+          </span>
+          <span class="px-2 py-1 text-[10px] font-semibold rounded-lg bg-slate-900/90 text-emerald-300 border border-emerald-500/30 backdrop-blur-md">
+            Calibrated
+          </span>
+        </div>
+        <div class="absolute top-3 right-3 px-2 py-1 rounded-lg bg-emerald-950/90 text-emerald-300 text-xs font-bold border border-emerald-500/40 backdrop-blur-md flex items-center gap-1 shadow-md">
+          <span>🌿</span>
+          <span class="tabular-nums">+35 pts</span>
+        </div>
+      </div>
+
+      <div class="p-5 flex-1 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between text-xs text-slate-400 mb-1.5">
+            <span class="font-semibold text-emerald-400">Workshop Gear • Mechanical / CSE</span>
+            <span class="flex items-center gap-1 text-amber-400 font-semibold">★ 5.0 (24 handovers)</span>
+          </div>
+
+          <h3 class="text-base font-bold text-white group-hover:text-emerald-300 transition-colors duration-150 line-clamp-1">
+            Engineering Mini Drafter & Sheet Tube
+          </h3>
+          <p class="text-xs text-slate-400 mt-2 line-clamp-2 leading-relaxed">
+            Essential for 1st & 2nd semester Engineering Graphics and Drawing coursework. Steel arm clamp, zero drift, includes waterproof chart carrying tube.
+          </p>
+
+          <div class="mt-3 flex items-center gap-1.5 text-[11px] text-slate-400">
+            <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <span class="truncate">Mechanical Workshop Room 104</span>
+          </div>
+        </div>
+
+        <div class="mt-5 pt-4 border-t border-slate-800 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-full bg-slate-800 border border-emerald-500/40 text-[10px] font-bold text-emerald-400 flex items-center justify-center">
+              DC
+            </div>
+            <div class="text-[11px] leading-tight">
+              <span class="font-semibold text-slate-200 block">Dipesh Chauhan</span>
+              <span class="text-slate-500 text-[10px]">Verified Peer • Sem 4</span>
+            </div>
+          </div>
+
+          <button 
+            type="button" 
+            class="request-item-btn px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition-colors duration-150 active:scale-95 shadow-sm"
+            data-item-title="Engineering Mini Drafter & Sheet Tube"
+            data-item-owner="Dipesh Chauhan (CSE)"
+            data-item-type="Borrow"
+            data-item-id="CL-ITEM-04"
+            data-item-points="35"
+          >
+            Request Borrow
+          </button>
+        </div>
+      </div>
+    </article>
+
+    <!-- Item 5: Lab Coat & Goggles Free Donation -->
+    <article 
+      class="resource-card group bg-slate-900/80 rounded-2xl border border-slate-800 hover:border-emerald-500/50 transition-all duration-200 overflow-hidden flex flex-col shadow-md hover:shadow-xl hover:shadow-emerald-500/5"
+      data-action="donate"
+      data-category="Lab & Workshop Gear"
+      data-department="Chemical"
+      data-points="50"
+      data-title="Cotton Chemistry Lab Coat + Anti-Fog Safety Goggles"
+      data-owner="Priya Sharma"
+    >
+      <div class="relative aspect-square w-full overflow-hidden bg-slate-950">
+        <img 
+          src="/images/mini_drafter.jpg" 
+          alt="University chemistry student white lab coat and safety gear" 
+          width="400" 
+          height="400" 
+          loading="lazy"
+          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        />
+        <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
+          <span class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-teal-400 text-slate-950 shadow-md">
+            🎁 100% Free Donation
+          </span>
+          <span class="px-2 py-1 text-[10px] font-semibold rounded-lg bg-slate-900/90 text-teal-300 border border-teal-500/30 backdrop-blur-md">
+            Pass-It-On
+          </span>
+        </div>
+        <div class="absolute top-3 right-3 px-2 py-1 rounded-lg bg-emerald-950/90 text-emerald-300 text-xs font-bold border border-emerald-500/40 backdrop-blur-md flex items-center gap-1 shadow-md">
+          <span>🌿</span>
+          <span class="tabular-nums">+50 pts</span>
+        </div>
+      </div>
+
+      <div class="p-5 flex-1 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between text-xs text-slate-400 mb-1.5">
+            <span class="font-semibold text-teal-400">Lab Gear • Chemical Sciences</span>
+            <span class="flex items-center gap-1 text-amber-400 font-semibold">★ 4.9 (15 handovers)</span>
+          </div>
+
+          <h3 class="text-base font-bold text-white group-hover:text-emerald-300 transition-colors duration-150 line-clamp-1">
+            Cotton Lab Coat + Anti-Fog Goggles
+          </h3>
+          <p class="text-xs text-slate-400 mt-2 line-clamp-2 leading-relaxed">
+            Graduating senior donating heavy-duty cotton lab coat (Size L, freshly laundered) + UV protective safety goggles. Free gift to any junior or 1st-year student.
+          </p>
+
+          <div class="mt-3 flex items-center gap-1.5 text-[11px] text-slate-400">
+            <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <span class="truncate">Pharmacy Building Reception</span>
+          </div>
+        </div>
+
+        <div class="mt-5 pt-4 border-t border-slate-800 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-full bg-slate-800 border border-teal-500/40 text-[10px] font-bold text-teal-400 flex items-center justify-center">
+              PS
+            </div>
+            <div class="text-[11px] leading-tight">
+              <span class="font-semibold text-slate-200 block">Priya Sharma</span>
+              <span class="text-slate-500 text-[10px]">Verified Peer • Sem 7</span>
+            </div>
+          </div>
+
+          <button 
+            type="button" 
+            class="request-item-btn px-3.5 py-1.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs transition-colors duration-150 active:scale-95 shadow-sm"
+            data-item-title="Cotton Lab Coat + Anti-Fog Goggles"
+            data-item-owner="Priya Sharma (Chemical)"
+            data-item-type="Donate"
+            data-item-id="CL-ITEM-05"
+            data-item-points="50"
+          >
+            Claim Free Item
+          </button>
+        </div>
+      </div>
+    </article>
+
+    <!-- Item 6: Raspberry Pi 4 Model B -->
+    <article 
+      class="resource-card group bg-slate-900/80 rounded-2xl border border-slate-800 hover:border-emerald-500/50 transition-all duration-200 overflow-hidden flex flex-col shadow-md hover:shadow-xl hover:shadow-emerald-500/5"
+      data-action="borrow"
+      data-category="Electronics"
+      data-department="IT"
+      data-points="50"
+      data-title="Raspberry Pi 4 Model B (4GB) with Official Power Supply"
+      data-owner="Rohan Patel"
+    >
+      <div class="relative aspect-square w-full overflow-hidden bg-slate-950">
+        <img 
+          src="/images/arduino_kit.jpg" 
+          alt="Raspberry Pi 4 Model B single board computer setup" 
+          width="400" 
+          height="400" 
+          loading="lazy"
+          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        />
+        <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
+          <span class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-emerald-500 text-slate-950 shadow-md">
+            Borrow (Up to 10 Days)
+          </span>
+          <span class="px-2 py-1 text-[10px] font-semibold rounded-lg bg-slate-900/90 text-emerald-300 border border-emerald-500/30 backdrop-blur-md">
+            Capstone Ready
+          </span>
+        </div>
+        <div class="absolute top-3 right-3 px-2 py-1 rounded-lg bg-emerald-950/90 text-emerald-300 text-xs font-bold border border-emerald-500/40 backdrop-blur-md flex items-center gap-1 shadow-md">
+          <span>🌿</span>
+          <span class="tabular-nums">+50 pts</span>
+        </div>
+      </div>
+
+      <div class="p-5 flex-1 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between text-xs text-slate-400 mb-1.5">
+            <span class="font-semibold text-emerald-400">Electronics • IT</span>
+            <span class="flex items-center gap-1 text-amber-400 font-semibold">★ 5.0 (8 handovers)</span>
+          </div>
+
+          <h3 class="text-base font-bold text-white group-hover:text-emerald-300 transition-colors duration-150 line-clamp-1">
+            Raspberry Pi 4 Model B (4GB RAM)
+          </h3>
+          <p class="text-xs text-slate-400 mt-2 line-clamp-2 leading-relaxed">
+            Includes official USB-C 15W power supply, micro-HDMI to HDMI cable, and 32GB Class 10 SanDisk card. Perfect for Computer Networks and Final Year Projects.
+          </p>
+
+          <div class="mt-3 flex items-center gap-1.5 text-[11px] text-slate-400">
+            <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <span class="truncate">Tech Park Block D, 3rd Floor</span>
+          </div>
+        </div>
+
+        <div class="mt-5 pt-4 border-t border-slate-800 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-full bg-slate-800 border border-emerald-500/40 text-[10px] font-bold text-emerald-400 flex items-center justify-center">
+              RP
+            </div>
+            <div class="text-[11px] leading-tight">
+              <span class="font-semibold text-slate-200 block">Rohan Patel</span>
+              <span class="text-slate-500 text-[10px]">Verified Peer • Sem 8</span>
+            </div>
+          </div>
+
+          <button 
+            type="button" 
+            class="request-item-btn px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition-colors duration-150 active:scale-95 shadow-sm"
+            data-item-title="Raspberry Pi 4 Model B (4GB RAM)"
+            data-item-owner="Rohan Patel (IT)"
+            data-item-type="Borrow"
+            data-item-id="CL-ITEM-06"
+            data-item-points="50"
+          >
+            Request Borrow
+          </button>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <!-- Empty Search Results State -->
+  <div id="no-results-state" class="hidden text-center py-16 bg-slate-900/40 rounded-2xl border border-slate-800 mt-6">
+    <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-slate-800/80 text-slate-400 flex items-center justify-center">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+    </div>
+    <h3 class="text-lg font-bold text-slate-200">No matching campus resources found</h3>
+    <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+      Try adjusting your category or department filters, or list a request in the student exchange queue.
+    </p>
+    <button 
+      type="button" 
+      id="reset-filters-btn"
+      class="mt-4 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-semibold border border-emerald-500/30 transition-colors duration-150"
+    >
+      Reset All Filters
+    </button>
+  </div>
+</section>

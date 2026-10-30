@@ -1,0 +1,104 @@
+---
+// src/components/ActiveLoansDrawer.astro
+---
+
+<!-- Active Loans Slide-Over Drawer -->
+<div 
+  id="loans-drawer-backdrop" 
+  class="fixed inset-0 z-50 hidden bg-slate-950/70 backdrop-blur-sm transition-opacity duration-200"
+  aria-hidden="true"
+></div>
+
+<aside 
+  id="loans-drawer" 
+  class="fixed inset-y-0 right-0 z-50 w-full max-w-lg bg-slate-900 border-l border-slate-800 shadow-2xl flex flex-col transform translate-x-full transition-transform duration-300 ease-in-out"
+  role="dialog" 
+  aria-modal="true" 
+  aria-labelledby="loans-drawer-title"
+>
+  <!-- Drawer Header -->
+  <div class="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/70">
+    <div class="flex items-center gap-2.5">
+      <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold text-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+      </div>
+      <div>
+        <h2 id="loans-drawer-title" class="text-base font-bold text-white">Requests & Handover Tracker</h2>
+        <p class="text-xs text-slate-400">Incoming requests & scheduled campus meetups</p>
+      </div>
+    </div>
+
+    <button 
+      type="button" 
+      id="close-loans-drawer-btn" 
+      class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors duration-150"
+      aria-label="Close Loans Drawer"
+    >
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+
+  <!-- Loan List Container -->
+  <div class="flex-1 overflow-y-auto p-5 space-y-6">
+    <!-- Section 1: Incoming Requests (Items You Own) -->
+    <div>
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+          </svg>
+          <span>Incoming Requests For Your Items</span>
+        </h3>
+        <span id="incoming-requests-count" class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">
+          0 New
+        </span>
+      </div>
+
+      <div id="incoming-requests-list" class="space-y-3">
+        <div class="p-6 text-center text-slate-500 text-xs bg-slate-950/40 rounded-2xl border border-slate-800/60">
+          No incoming requests at the moment.
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: Outgoing Requests (Items You Requested From Peers) -->
+    <div>
+      <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+        </svg>
+        <span>Your Requests & Active Borrowings</span>
+      </h3>
+
+      <div id="active-loans-list" class="space-y-3">
+        <div class="p-6 text-center text-slate-500 text-xs bg-slate-950/40 rounded-2xl border border-slate-800/60">
+          You haven't requested any items yet.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Drawer Footer: Green Points Summary -->
+  <div class="p-5 border-t border-slate-800 bg-slate-950/90">
+    <div class="flex items-center justify-between mb-3 text-xs">
+      <span class="text-slate-400">Total Green Points Earned:</span>
+      <span id="drawer-green-points" class="font-bold text-emerald-400 text-sm tabular-nums flex items-center gap-1.5">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+          <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+        </svg>
+        <span>480 pts</span>
+      </span>
+    </div>
+    <a 
+      href="#leaderboard" 
+      class="block w-full text-center py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 font-bold text-xs border border-emerald-500/30 transition-colors duration-150"
+    >
+      View Campus Leaderboard & Perks →
+    </a>
+  </div>
+</aside>

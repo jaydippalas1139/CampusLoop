@@ -1,0 +1,216 @@
+---
+// src/components/QRVerificationModal.astro
+---
+
+<!-- QR Handover Verification Modal -->
+<div 
+  id="qr-verification-modal" 
+  class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-md transition-opacity duration-200"
+  role="dialog" 
+  aria-modal="true" 
+  aria-labelledby="qr-modal-title"
+>
+  <div class="relative w-full max-w-lg bg-slate-900 border border-slate-700/80 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <!-- Modal Header -->
+    <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/90">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+            <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+            <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+            <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+          </svg>
+        </div>
+        <div>
+          <h2 id="qr-modal-title" class="text-base font-bold text-white">Handover Verification</h2>
+          <p class="text-[11px] text-slate-400">Proof of physical item exchange</p>
+        </div>
+      </div>
+
+      <button 
+        type="button" 
+        id="close-qr-modal-btn" 
+        class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors duration-150"
+        aria-label="Close Handover Modal"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Handover Sub-Tabs -->
+    <div class="flex border-b border-slate-800 bg-slate-950/60 p-1.5 gap-1.5" role="tablist">
+      <button 
+        type="button" 
+        id="tab-btn-generate"
+        class="flex-1 py-2 px-3 text-xs font-bold rounded-xl bg-emerald-500 text-slate-950 shadow-sm transition-all duration-150 flex items-center justify-center gap-2"
+        role="tab"
+        aria-selected="true"
+      >
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+          <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+          <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+          <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+        </svg>
+        <span>Show My QR & PIN</span>
+      </button>
+      <button 
+        type="button" 
+        id="tab-btn-scan"
+        class="flex-1 py-2 px-3 text-xs font-bold rounded-xl bg-slate-800 text-slate-300 hover:text-white transition-all duration-150 flex items-center justify-center gap-2"
+        role="tab"
+        aria-selected="false"
+      >
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>Confirm Receipt</span>
+      </button>
+    </div>
+
+    <!-- Modal Content Body -->
+    <div class="p-6 overflow-y-auto space-y-5">
+      <!-- Active Transaction Info Box -->
+      <div class="bg-slate-950/80 rounded-2xl p-4 border border-slate-800 space-y-2">
+        <div class="flex items-center justify-between">
+          <span id="qr-modal-trx-id" class="text-[10px] font-mono text-emerald-400 uppercase tracking-wider font-semibold">
+            Transaction #REQ-PENDING
+          </span>
+          <span id="transaction-state-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+            Awaiting Handover
+          </span>
+        </div>
+        <div id="qr-modal-item-name" class="text-sm font-bold text-slate-100">
+          Casio fx-991EX Scientific Calculator
+        </div>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-400 gap-1 pt-1 border-t border-slate-800/80">
+          <span id="qr-modal-peer-name">With: Ajay Vaniya (CSE)</span>
+          <span id="qr-modal-meetup-info" class="text-emerald-400 font-medium">Meetup: Today 1:30 PM @ Library Foyer</span>
+        </div>
+      </div>
+
+      <!-- VIEW 1: DISPLAY QR CODE & PIN -->
+      <div id="view-display-qr" class="space-y-4 text-center">
+        <!-- SVG Generated QR Code -->
+        <div class="relative mx-auto w-52 h-52 p-3 bg-white rounded-2xl shadow-xl flex items-center justify-center">
+          <svg class="w-full h-full text-slate-950" viewBox="0 0 100 100" fill="currentColor" aria-label="CampusLoop Verification QR Code">
+            <!-- Finder Patterns -->
+            <rect x="5" y="5" width="28" height="28" rx="4" fill="#09111e"/>
+            <rect x="9" y="9" width="20" height="20" rx="2" fill="#ffffff"/>
+            <rect x="13" y="13" width="12" height="12" rx="2" fill="#10b981"/>
+
+            <rect x="67" y="5" width="28" height="28" rx="4" fill="#09111e"/>
+            <rect x="71" y="9" width="20" height="20" rx="2" fill="#ffffff"/>
+            <rect x="75" y="13" width="12" height="12" rx="2" fill="#10b981"/>
+
+            <rect x="5" y="67" width="28" height="28" rx="4" fill="#09111e"/>
+            <rect x="9" y="71" width="20" height="20" rx="2" fill="#ffffff"/>
+            <rect x="13" y="75" width="12" height="12" rx="2" fill="#10b981"/>
+
+            <!-- Modules -->
+            <rect x="37" y="8" width="4" height="4" fill="#09111e"/>
+            <rect x="45" y="8" width="4" height="4" fill="#09111e"/>
+            <rect x="53" y="8" width="4" height="4" fill="#09111e"/>
+            <rect x="8" y="37" width="4" height="4" fill="#09111e"/>
+            <rect x="8" y="45" width="4" height="4" fill="#09111e"/>
+            <rect x="8" y="53" width="4" height="4" fill="#09111e"/>
+
+            <rect x="44" y="44" width="12" height="12" rx="2" fill="#09111e"/>
+            <rect x="46" y="46" width="8" height="8" rx="1" fill="#ffffff"/>
+            <rect x="48" y="48" width="4" height="4" fill="#10b981"/>
+
+            <rect x="37" y="20" width="4" height="4" fill="#09111e"/>
+            <rect x="45" y="24" width="4" height="4" fill="#09111e"/>
+            <rect x="53" y="20" width="4" height="4" fill="#09111e"/>
+            <rect x="37" y="37" width="4" height="4" fill="#09111e"/>
+            <rect x="57" y="37" width="4" height="4" fill="#09111e"/>
+            <rect x="65" y="37" width="4" height="4" fill="#09111e"/>
+            <rect x="37" y="65" width="4" height="4" fill="#09111e"/>
+            <rect x="45" y="69" width="4" height="4" fill="#09111e"/>
+            <rect x="57" y="65" width="4" height="4" fill="#09111e"/>
+            <rect x="65" y="65" width="4" height="4" fill="#09111e"/>
+            <rect x="73" y="69" width="4" height="4" fill="#09111e"/>
+            <rect x="85" y="65" width="4" height="4" fill="#09111e"/>
+            <rect x="77" y="45" width="4" height="4" fill="#09111e"/>
+            <rect x="85" y="45" width="4" height="4" fill="#09111e"/>
+            <rect x="77" y="53" width="4" height="4" fill="#09111e"/>
+            <rect x="37" y="77" width="4" height="4" fill="#09111e"/>
+            <rect x="45" y="85" width="4" height="4" fill="#09111e"/>
+            <rect x="53" y="77" width="4" height="4" fill="#09111e"/>
+            <rect x="61" y="85" width="4" height="4" fill="#09111e"/>
+            <rect x="69" y="77" width="4" height="4" fill="#09111e"/>
+            <rect x="77" y="85" width="4" height="4" fill="#09111e"/>
+            <rect x="85" y="77" width="4" height="4" fill="#09111e"/>
+          </svg>
+        </div>
+
+        <!-- 4-Digit Handover PIN Card -->
+        <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800 max-w-xs mx-auto">
+          <div class="text-[11px] text-slate-400 font-medium mb-1">Backup 4-Digit Handover PIN:</div>
+          <div id="qr-modal-handover-pin" class="text-2xl font-mono font-extrabold text-emerald-400 tracking-widest">
+            8492
+          </div>
+          <p class="text-[10px] text-slate-500 mt-1">
+            Show this screen to your peer when meeting in-person on campus.
+          </p>
+        </div>
+      </div>
+
+      <!-- VIEW 2: CONFIRM HANDOVER (SCAN OR ENTER PIN) -->
+      <div id="view-scan-qr" class="hidden space-y-4">
+        <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3">
+          <label for="verification-pin-input" class="block text-xs font-bold text-slate-200">
+            Enter Counterpart's 4-Digit PIN:
+          </label>
+          <input 
+            type="text" 
+            id="verification-pin-input" 
+            placeholder="e.g. 8492" 
+            maxlength="8"
+            class="w-full px-4 py-2.5 text-center font-mono text-lg font-bold bg-slate-900 border border-slate-700 rounded-xl text-emerald-400 placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 tracking-widest uppercase"
+          />
+
+          <!-- Physical Inspection Checklist -->
+          <div class="pt-2 border-t border-slate-800/80 text-xs space-y-2">
+            <label class="flex items-center gap-2 text-slate-300 cursor-pointer">
+              <input type="checkbox" id="check-inspect" checked class="rounded border-slate-700 text-emerald-500 focus:ring-emerald-500" />
+              <span>Physical item inspected (operational & clean)</span>
+            </label>
+            <label class="flex items-center gap-2 text-slate-300 cursor-pointer">
+              <input type="checkbox" id="check-return-date" checked class="rounded border-slate-700 text-emerald-500 focus:ring-emerald-500" />
+              <span>Agreed on return date & condition</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Verify Handover Button -->
+        <button 
+          type="button" 
+          id="confirm-handover-btn"
+          class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/20 transition-all duration-150 active:scale-95 flex items-center justify-center gap-2"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+          </svg>
+          <span>Verify Handover (+35 Green Points)</span>
+        </button>
+      </div>
+
+      <!-- Success State Alert -->
+      <div id="qr-success-message" class="hidden p-4 rounded-2xl bg-emerald-950/80 border border-emerald-500/50 text-center space-y-2">
+        <div class="w-10 h-10 mx-auto rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <div class="text-sm font-bold text-emerald-300">Handover Verified Successfully!</div>
+        <p class="text-xs text-slate-300">
+          Handover confirmed. Both peers have earned <strong>+35 Green Points</strong>.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
